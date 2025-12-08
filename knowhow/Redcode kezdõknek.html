@@ -1,0 +1,1481 @@
+
+
+<!doctype html public "-//W3C//DTD HTML 4.0 Draft//EN">
+
+<html>
+<head>
+  <title>Redcode kezdõknek</title>
+<link rel="stylesheet" href="../minimal.css" type="text/css">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+
+  <h1 align=center>Redcode kezdõknek</h1>
+
+  <p align=center><small>1.10-es magyar verzió, írta Ilmari Karonen, fordította Bíró
+Csaba</small></p>
+
+  <hr>
+
+  <h2 align=center><a name="contents">Tartalom</a></h2>
+
+  <ul>
+    <li><a href="#contents">Tartalom</a></li>
+    <li><a href="#preface">Elõszó</a></li>
+    <li><a href="#introduction">A Core War bemutatkozik</a><ul>
+      <li><a href="#intro_what">Mi a Core War?</a></li>
+      <li><a href="#intro_how">Hogyan mûködik?</a></li>
+    </ul></li>
+    <li><a href="#starting">Az elsõ lépések a Redcode-dal</a><ul>
+      <li><a href="#start_instr">A Redcode utasításkészlete</a></li>
+      <li><a href="#start_imp">Az Imp</a></li>
+      <li><a href="#start_dwarf">A Dwarf</a></li>
+      <li><a href="#start_modes">A címzési módok</a></li>
+      <li><a href="#start_queue">A process várakozó sor</a></li>
+      <li><a href="#start_modif">Az utasítás-módosítók</a></li>
+    </ul></li>
+    <li><a href="#deeper">Mélyebben a '94-es standard-rõl</a><ul>
+      <li><a href="#deep_imm">A # több, mint gondolnánk...</a></li>
+      <li><a href="#deep_math">Modulo matematika</a></li>
+      <li><a href="#deep_instr">A '94-es standard utasításról
+utasításra</a></li>
+      <li><a href="#deep_space">P-space - a végsõ határ</a></li>
+    </ul></li>
+    <li><a href="#parser">A fordító</a><ul>
+		<li><a href="#parse_label">Címkék és címek</a></li>
+      <li><a href="#parse_whole">A teljes program</a></li>
+      <li><a href="#parse_ass">A környezet és a ;assert</a></li>
+      <li><a href="#parse_equ">#define? Hát, majdnem...</a></li>
+      <li><a href="#parse_for">Mire használhatjuk a "rof"-ot?</a></li>
+      <li><a href="#parse_var">Változatok változókra</a></li>
+      <li><a href="#parse_pin">PIN és pincsi</a></li>
+      <li><a href="#parse_hill">Másszunk hegyet!</a></li>
+    </ul></li>
+    <li><a href="#history">Történet</a></li>
+  </ul>
+
+  <hr>
+
+  <h2 align=center><a name="preface">Elõszó</a></h2>
+
+  <p>Napjainkban nem túl sok kezdõ érdeklõdik a Core War nevû játék iránt.
+  Ez tulajdonképpen természetes - nem olyan sok ember találja assembly kódok
+  optimalizálását szórakoztató feladatnak - viszont egy másik ok, hogy a kezdet
+fokozottan nehéz, ugyanis igen nehezen található információ a játék
+alapjairól. Igaz, van sok jó anyag, de a legtöbbjük vagy túl technikai,
+vagy elavult, vagy nehezen elérhetõ, vagy egyszerûen nem teljes.</p>
+
+  <p>Hát ezek az okok vezettek ennek az anyagnak a megírásához. A célom,
+hogy elvezessem a kezdõket a Core War-ral és Redcode-dal való elsõ
+találkozásuktól addig a pontig, amikor már önállóan is tudnak mûködõ (ha
+nem sikeres) harcost írni, és megérthetnek technikaibb jellegû
+cikkeket is.</p>
+
+  <p>Õszintén bevallom, hogy én magam is kezdõ vagyok a játékhoz. A nyelvet ugyan elég jól ismerem,
+de még nem írtam igazán sikeres harcost. Mégis úgy döntöttem, nem várok addig, amíg tapaszaltabb
+leszek, hanem azonnal megírom ezt az ismertetõt, amíg frissen élnek bennem az emlékek, hogy milyen
+kezdõnek lenni, és próbálkozni a játék megértésével.</p>
+
+  <p>Ez az ismertetõ <em>abszolút</em> kezdõknek lett szánva. Semmi elõismeret nem szükséges az assembly
+nyelrõl (meg úgy általában a progamozásról), bár az alapdolgok ismerete elõsegítheti a megértést.
+A Redcode, fõleg a modern változatok, lehet, hogy assemly kód jellegûnek tûnik, de annál sokkal
+absztraktabb, és részleteiben teljesen más, mint bármelyik assembly nyelv.</p>
+
+  <p>A Redcode azon fajtája, amit ebben az anyagban (leginkább)
+használunk, a jelenlegi <cite>de facto</cite>, és ez az ICWS '94
+Standard Draft a pMARS 0.8 kiterjesztéseivel. (Valahogy úgy, ahogy a
+HTML a Netscape kiterjesztéseivel...  hmm... szerencsére még nincs
+Microsoft Corewar Szimulátor. Lehet, hogy túl kicsinek találják  a
+piacot.) A korábbi '88-as standard-et csak említés szintjén
+tárgyaljuk, a fõ célunk a '94-es standard bemutatása. Azok, akik
+mégis azt akarják tanulni, könnyen találhatnak egy csomó leírást
+róla a weben.</p>
+
+<p><strong>Fontos:</strong>: A Redcode - vagy bármely más programozási
+nyelv - tanulására nincs jobb módszer, mint a szigorú, 
+lépésrõl-lépésre való haladás. Ráadásul én megpróbáltam jól
+tanulható anyagot összeállítani; <em>de ha valamit át akarsz ugrani,
+hát tedd</em>. Erre való a <a href="#connents">Tartalomjegyzék</a>
+címû fejezet.</p>
+
+<p>Meg kell még jegyeznem, hogy gyakran arra fogok kényszerülni, hogy
+valamit hamarabb mutassak meg, mint hogy elmagyaráznám a jelentését.
+Ezért ha valami nem tûnik azonnal érthetõnek, olvass egy kicsit
+tovább, és ha még mindig nem érted, próbálj meg nézelõdni a
+szövegben, hogy hol van elmagyarázva.</p>
+
+<p>Persze mindenki másképp tanul, szóval a saját módszered lehet,
+hogy jobban beválik, mint amit én kitaláltam. De ha valamit unalmasnak
+találván teljesen átugrasz, megvan az esélyed arra, hogy kihagysz
+valami fontosat. Megpróbáltam a fontos részeket <em>kiemelve</em>
+írni, hogy tudd, hol kell megállni és gondolkozni. Ennek ellenére
+próbálj meg mindent figyelmesen olvasni. Mindent nem részletezhettem
+ki, mert akkor ez a szöveg olvashatatlanul hosszúra nyúlt volna.
+
+  <hr>
+
+  <h2 align=center><a name="introduction">A Core War bemutatkozik</a></h2>
+
+  <h3><a name="intro_what">Mi a Core War?</a></h3>
+
+<p>A <cite>Core War</cite> (vagy <cite>Core Wars</cite>) programozási
+játék, ahol assembly programok próbálják megsemmisíteni egymást egy
+képzeletbeli számítógép memóriájában. A programok (vagy
+<cite>harcosok</cite>) egy speciális nyelven íródnak, aminek neve
+<cite>Redcode</cite>, õket pedig egy MARS nevû program futtatja
+(MARS=<cite>Memory Array Redcode Simulator</cite>).</p>
+
+<p>Mind a Redcode, mind a MARS környezet lényegesen le van egyszerûsítve a valódi
+számítógéprendszerekhez képest. Ez jó dolog, tekintve a CW programozás célját.
+Ha a játék egy valódi assembly nyelvet használna, lenne két vagy három ember a Földön,
+aki képes volna effektív és életképes programot írni, és még lehet, hogy õk sem értenék
+programjaik mûködését tökéletesen. Természetesen ez is nagy kihívás lenne, tele
+lehetõségekkel, de valószínûleg az is évekig tartana, hogy az ember egy közepes
+erõsségû játékossá váljon.</p>
+
+  <h3><a name="intro_how">Hogyan mûködik?</a></h3>
+
+<P>A rendszer, amiben a programok futnak, fölöttébb egyszerû. A <em>core</em> (a virtuális
+gép memóriája), egy utasításokat tartalmazó lista, ami indításkor, a benne levõ harcra kész
+programoktól eltekintve üres. A core körbefordul, tehát az utolsó utasítást ismét az elsõ
+követi.</p>
+
+<p> Persze a programok nem tudhatják, hogy a core hol végzõdik, hiszen nincs abszolút memóriacím.
+Szóval a 0-ás címen nem az elsõ utasítást van, hanem az amelyik a címzést tartalmazza.
+A következõ utasítás az 1-es és az elõzõ pedig nyilván a -1-es címû.</p>
+
+<p>Amint az látható, a memória legkisebb egysége a Core War-ban az
+utasítás, ellentétben az általános gyakorlatban megszokott byte-tal.
+Minden Redcode utasítás 3 részbõl áll maga az <cite>utasítás</cite>, a
+forrás cím (ennek neve <cite>A-mezõ</cite>), és a cél cím (ez a
+<cite>B-mezõ</cite>). És bár lehet például adatot mozgatni az A- és a
+B-mezõ között, de az utasításokat általában, mint összefüggõ blokk kell
+felfogni.
+
+<p>A programok végrehajtása ugyanilyen egyszerû. A MARS egyszerre egy utasítást hajt
+végre, azután ugrik a következõre a memóriában, hacsak a vérehajtott utasítás nem
+küldi egy másik címre. Ha (mint általában) egyszerre több program is fut, akkor a
+programok egyszerre hajtódnak végre: egy utasítás az egyikbõl, aztán egy a másikból,
+és így tovább. Így minden utasítás végrehajtása ugyanannyi idõt vesz igénybe:
+egy ütemet, legyen az utasítás <code>MOV</code>, <code>DIV</code> vagy akár
+<code>DAT</code> (ami mellesleg leállitja a processt)...</p>
+
+  <hr>
+
+  <h2 align=center><a name="starting">Elsõ lépések a Redcode-dal</a></h2>
+
+  <h3><a name="start_instr">A Redcode utasításkészlete</a></h3>
+
+<p>A Redcode utasítások száma minden új standard bevezetésekor növekedett, így
+lett az eredeti 5 utasításból jelenleg 18 vagy 19. És ebben még nincsenek benne az
+új módosítók és címzési módok, amikbõl kombinációk százai állíthatók elõ.
+Szerencsére nem kell minden kombinációt megtanulnunk. Elég ha emlékszünk az
+utasításokra, és hogy a módosítók mit változtatnak rajtuk.</p>
+
+<p>Íme egy lista a Redcode-ban használt utasításokról:</p>
+
+  <ul>
+    <li><code>DAT</code> - adat (leállitja a process-t)</li>
+    <li><code>MOV</code> - mozgatás (adatot másol egyik címrõl a másikra)</li>
+    <li><code>ADD</code> - összeadás (hazzáad egy számot egy másikhoz)</li>
+    <li><code>SUB</code> - kivonás (kivon egy számot egy másikból)</li>
+    <li><code>MUL</code> - szorzás (megszoroz egy számot egy másikkal)</li>
+    <li><code>DIV</code> - osztás (eloszt egy számot egy másikkal)</li>
+    <li><code>MOD</code> - modulus (eloszt egy számot egy másikkal és a maradékot adja)</li>
+    <li><code>JMP</code> - ugrás (a végrehajtást egy másik címen
+folytatja)</li>
+    <li><code>JMZ</code> - ugrás, ha nulla (megvizsgál egy számot, és ugrik, ha az 0)</li>
+    <li><code>JMN</code> - ugrás, ha nem nulla (megvizsgál egy számot, és ugrik, ha az nem 0)</li>
+    <li><code>DJN</code> - csökkentés, és ugrás, ha nem nulla (eggyel csökkent egy számot, és ugrik,
+ha az eredmény nem 0)</li>
+<li><code>SPL</code> - szétválás (új process-t indít másik címen)</li>
+    <li><code>CMP</code> - összehasonlítás (ugyanaz, mint a <code>SEQ</code>)</li>
+    <li><code>SEQ</code> - kihagyás, ha egyenlõ (összehasonlít két utasítást, és kihagyja a következõt,
+    ha egyelõek)</li>
+    <li><code>SNE</code> - kihagyás, ha nem egyenlõ (összehasoonlít két
+utasítást, és kihagyja a következõt, ha nem egyelõek)</li>
+    <li><code>SLT</code> - kihagyás, ha kisebb, mint (összehasoonlít két értéket, és kihagyja a következõ
+utasítást, ha az <em>elsõ</em> kisebb, mint a <em>második</em>)</li>
+    <li><code>LDP</code> - betöltés a p-space-bõl (betölt egy számot a privát memóriából)</li>
+    <li><code>STP</code> - mentés p-space-be (kiment egy számot a privát memóriába)</li>
+    <li><code>NOP</code> - nincs mûvelet (nem csinál semmit)</li>
+  </ul>
+
+<p>Ne aggasszon, ha némelyik enyhén szólva furcsának tûnik. Amint mondtam, a Redcode,
+absztrakt természetébõl adódóan, egy kicsit különbözik az általánosan használt
+assembly nyelvektõl.</p>
+ 
+  <h3><a name="start_imp">Az Imp</a></h3>
+<p>Az az igazság, hogy a Redcode legegyszerûbb elemei a legfontosabbak. A
+legtöbb harcos-tipust még az új utasítások bevezetése elõtt kitalálták.
+Talán a legelsõ Core War program az <EM>Imp</EM> volt, ezt A. K. Dewdney
+publikálta 1984-ben az Scientific American-ben. Ez a cikk volt az elsõ Core
+War-ról szóló tanulmány a szaksajtóban.
+</p>
+   <pre>
+        MOV 0, 1</pre>
+
+<P>Ennyi. Egyetlen vacak <CODE>MOV</CODE>. De <EM>mit is csinál</EM>?
+Hát <CODE>MOV</CODE>, természetesen utasítást másol. Ha emlékszel még, a
+Core War-ban minden cím relatív az aktuális utasításhoz, így az Imp
+tulajdonképpen önmagát másolja egy utasítással maga elé.</p>
+
+  <pre>
+        MOV 0, 1         ; ezt hajtotta végre most
+        MOV 0, 1         ; ezt az utasítást hajtja végre mindjárt</pre>
+<P>Tehát az Imp azt az utasítást fogja vérehajtani, amit õ másolt oda az elõbb!
+És mivel az pontosan ugyanaz mint az elsõ, újra lemásolja magát, megint
+továbbmegy a másolásra, és így folytatva a végrehajtást telerakja a core-t
+<CODE>MOV</CODE>-val. A core-nak pedig nincs tulajdonképpeni vége, így az Imp
+miután teljesen teletöltötte, eléri a kiindulási pontját, és boldogan folytatja
+a futást a körbe-körbe az idõk végezetéig.</p>
+
+  <p>
+Tehát az Imp elkészíti a saját kódját, aztán végrehajtja azt! A Core War-ban az
+önmódosítás inkább szabály, mint kivétel. Hatékonynak, sikeresnek kell lenned,
+és ez majdnem mindig azzal jár, hogy a programodnak módosítania kell magát futás
+közben. Szerencsére az absztrakt környezet ezt sokkal inkább lehetõvé teszi,
+mint a szokásos assembly-ben.</p>
+
+  <p>Ehhez kapcsolódva elmondanánk, hogy a Core War-ban természetesen nincsen
+cache, ám ez így mégsem igaz, mert a végrahajtott utasítás cache-elõdik.
+Így nem változtathatunk meg egy utasítást önmaga végrehajtása közben.
+De errõl majd inkább késõbb...</p>
+
+  <h3><a name="start_dwarf">A Dwarf</a></h3>
+
+  <p>Az Impnek, mint harcosnak egyetlen hátulütõje van. Nem fog túl sok
+meccset megnyerni, mert amikor valakit felülír, az is elkezdi a <code>
+MOV 0, 1</code>-eket végrehajtani, õ is Imppé válik, és az eredmény
+döntetlen. Más programok megöléséhez <code>DAT</code> utasítást
+kell annak kódjába másolni.</p>
+
+<p>Ez az, amit a Dewdney által írt másik klasszikus harcos, a Dwarf csinál.
+"Bombázza" a core-t egyenlõ távolságonként <code>DAT</code>-okkal, és
+mellesleg soha nem lövi szét önmagát.</p>
+
+  <pre>
+        ADD #4, 3        ; a végrahajtás itt kezdõdik
+        MOV 2, @2
+        JMP -2
+        DAT #0, #0</pre>
+
+<p>Tulajdonképpen ez nem pontosan ugyanaz, mint amit Dewdney írt, de pontosan
+ugyanazt teszi. A végrehajtás ismét az elsõ utasításon kezdõdik, ami most
+egy <code>ADD</code>. Az <code>ADD</code> összeadja a forrást és a célt, az
+eredményt pedig a célra teszi. Ha valaki otthonosan mozog más assembly nyelvekben,
+már biztos felismerte a <code>#</code> jelet, ami egy módja a közvetlen
+címzés jelzésének. Vagyis az <code>ADD</code> hozzáadja a 4-es számot
+(és nem a 4-es címen található számot) a 3-as címen található utasításhoz.
+Mivel pedig az <code>ADD</code>-tól számított 3. címen található utasítás
+a <code>DAT</code>, ezért az eredmény a következõ lesz:
+
+  <pre>
+        ADD <strong>#4</strong>, 3
+        MOV 2, @2        ; következõ utasítás
+        JMP -2
+        DAT #0, #<strong>4</strong></pre>
+
+  <p>Ha két utasítást összeadssz, akkor az A- és a B-mezõk egymástól
+függetlenül összeadódnak. Ha egy egyszerû számot adsz hozzá egy utasításhoz,
+akkor az alapértelmezésben annak B-mezõjéhez adódik. Az is megengedett, hogy a
+B-mezõben <code>#</code>-t használjunk. Ekkor az A-mezõ ugyanannak az <code>ADD</code>-nak
+a B-mezõjéhez adódik.</p>
+
+<p>A közvetlen címzés egyszerûnek és ismerõsnek tûnhet, ám az új
+  <a href="#start_modif">módosítók</a> az ICWS '94 standard-ben új
+trükköket tesznek vele lehetõvé. De nézzük elõbb a Dwarf-ot.</p>
+
+<p>A <code>MOV</code> megint egy új címzésmódot mutat nekünk: a
+<code>@</code>-t, vagyis az indirekt címzést. Ez azt jelenti, hogy
+a <code>DAT</code> nem önmagára másolódik, ahogy az elsõre tûnhet
+(milyen jó is lenne), hanem arra az utasításra, amire a B-mezõje
+mutat. Íme:</p>
+
+  <pre>
+        ADD #4, 3
+        MOV 2, <strong>@</strong>2  ;  --.
+        JMP -2     ;    | +2
+        DAT #0, #4 ; &lt;--' --. A MOV B-mezõje ide mutat.
+        ...                 |
+        ...                 | +4
+        ...                 |
+        DAT #0, #4 ; &lt;------' A DAT B-mezõje ide mutat.</pre>
+
+<p>Amint látható, a <code>DAT</code> négy utasítással maga elé másolódott.
+A következõ utasítás, a <code>JMP</code>, egyszerûen visszaugrik két
+utasításnyit, vissza az <code>ADD</code>-ra. Mivel a <code >JMP</code>
+nem veszi figyelembe a B-mezõjét, üresen hagytam neki. A MARS 0
+értékkel fogja inicializálni.</.p>
+
+<p>Az is látható, hogy a MARS nem kezdi el követni a hosszabb indirekt
+láncokat. Ha például az indirekt operandus olyan utasításra mutat,
+aminek mondjuk 4 a B-mezõje, akkor az aktuális cél 4 utasítással
+utána lesz, mindegy mi a címzésmód.</p>
+
+<p>Tehát az <code>ADD</code> és a <code>MOV</code> fog újra
+végrehajtódni. Mire a végrehajtás újra a <code>JMP</code>-hez ér, a
+core így fog kinézni:</p>
+
+  <pre>
+        ADD #4, 3
+        MOV 2, @2
+        JMP -2           ; következõ utasítás
+        DAT #0, #8
+        ...
+        ...
+        ...
+        DAT #0, #4
+        ...
+        ...
+        ...
+        DAT #0, #8</pre>
+
+<p>A Dwarf folytatja a <code>DAT</code>-ok dobálását minden negyedik
+utasításra, amíg körbe nem ér, és el nem éri önmagát:</p>
+
+  <pre>
+        ...
+        DAT #0, #-8
+        ...
+        ...
+        ...
+        DAT #0, #-4
+        ADD #4, 3        ; következõ utasítás
+        MOV 2, @2
+        JMP -2
+        DAT #0, #-4
+        ...
+        ...
+        ...
+        DAT #0, #4
+        ...</pre>
+  
+<p>Most az <code>ADD</code> visszaállítja a <code>DAT</code>-ot
+<code>#0, #0</code>-ra, a <code>MOV</code> feleslegesen erõlteti magát
+azzal, hogy a <code>DAT</code>-ot odamásolja, ahol egyébként is van,
+aztán a program mindent kezd elölrõl.</p>
+
+<p>Természetesen ez csak akkor mûködik, ha a core mérete 4-gyel
+osztható, mert különben a Dwarf, lelõné a <code>DAT</code> utáni
+valamelyik utasítást, megölve így önmagát. Szerencsére a leginkább
+elterjedt core-méret jelenleg 8000, esetleg 8192, 55400, illetve 800 -
+mind osztható 4-gyel, tehát Dwarfunk biztonságban van.</p>
+
+<p>Itt megjegyzem, hogy a <code>DAT #0, #0</code> a harcosban nem is lett
+volna feltétlenül szükséges, ugyanis a core eredetileg <code>DAT 0,
+0</code>-val van feltöltve. Én eddig három pontot tettem az üres
+helyekre (<code>...</code>), és ezt a jelölést fogom ezután is
+használni, mert rövidebb és jobban átlátható.</p>
+
+  <h3><a name="start_modes">A címzési módok</a></h3>
+
+<p>A Core War elsõ verziójában csak a közvetlen (<code>#</code>, a
+relatív (<code>$</code> vagy semmi) és a B-mezõ inirekt
+(<code>@</code>) címzésmódok léteztek. Késõbb, az elõcsökkentõ,
+vagyis a <code>&lt;</code> módot is bevezették. Ez ugyanaz, mint az
+indirekt mód, csak ennél mielõtt a cél cím kiszámolásra kerülne, a
+célra mutató szám eggyel csökken.</p>
+
+  <pre>
+        DAT #0, #5
+        MOV 0, <strong>&lt;</strong>-1       ; következõ utasítás</pre>
+
+<p>Mikor ez a kódrészlet végrehajtódik, az eredmény a következõ
+lesz:</p>  
+
+  <pre>
+        DAT #0, #<strong>4</strong> ;  ---.
+        MOV 0, &lt;-1 ;     |
+        ...        ;     | +4
+        ...        ;     |
+        MOV 0, &lt;-1 ; &lt;---'</pre>
+
+<p>Az ICWS '94 standard-be 4 újabb címzési mód került, ezek
+leginkább az A-mezõ indirekciókat kezelik le, így használhatjuk mind a
+8 lehetséges módot:</p>
+
+  <ul>
+    <li><code>#</code> - közvetlen</li>
+    <li><code>$</code> - relatív (a <code>$</code> elhagyható)</li>
+    <li><code>*</code> - A-mezõ indirekt</li>
+    <li><code>@</code> - B-mezõ indirekt</li>
+    <li><code>{</code> - A-mezõ indirekt elõcsökkentéssel</li>
+    <li><code>&lt;</code> - B-mezõ indirekt elõcsökkentéssel</li>
+    <li><code>}</code> - A-mezõ indirekt utónöveléssel</li>
+    <li><code>&gt;</code> - B-mezõ indirekt utónöveléssel</li>
+  </ul>
+
+<p>A utónövelõ mód hasonló az elõcsökkentõhöz, azzal a
+különbséggel, hogy a célra mutató szám eggyel <em>növekszik</em>,
+<em>miután</em> az utasítás végrehajtódik (értelemszerûen).</p>
+
+  <pre>
+        DAT #5, #-10
+        MOV -1, <strong>}</strong>-1      ; következõ utasítás</pre>
+
+  <p>végrehajtás után a következõképpen néz ki:</p>
+
+  <pre>
+        DAT #<strong>6</strong>, #-10 ;  --.
+        MOV -1, }-1  ;    |
+        ...          ;    |
+        ...          ;    | <strong>+5</strong>
+        ...          ;    |
+        DAT #<strong>5</strong>, #-10 ; &lt;--'</pre>
+
+<p>Egy fontos dolgot meg kell jegyezni az elõcsökkentéssel és az
+utónöveléssel kapcsolatban: a mutató szám akkor is
+csökkentve/növelve lesz, ha a címet nem használjuk semmire. Így
+például a <code>JMP -1, &lt;100</code> is csökkenti a 100-as
+utasítást, pedig azt, hogy az azon a címen lévõ érték mire mutat,
+nem használjuk. A <code>DAT &lt;50, &lt;60</code> is csökkenti a
+címeket, miközben megöli a process-t.
+
+  <h3><a name="start_queue">A process várakozó sor</a></h3>
+
+<p>Ha figyelmesen nézted az utasítástáblázatot pár fejezettel
+feljebb, akkor lehet, hogy meglepõdtél az <code>SPL</code> nevû
+utasításon. Ez természetesen nem található meg a szokásos assembly
+nyelvekben...</p>
+
+<p> Még a Core War korai történetében vetették fel, hogy a multitaskinget
+a játék részévé kellene tenni, mert úgy sokkal érdekesebb lenne. Mivel az
+egyszerû idõosztásos technika nem illene az absztrakt Core War
+környezethez (mivel például egy operációs rendszer kellene, hogy
+kontrollálja), kitaláltak egy rendszert, miszerint minden ciklus alatt egy
+process hajtódik végre egy adott programból.</p>
+
+<p>Az utasítás, amit új process-ek indítására használhatunk, az
+<code>SPL</code>. Akárcsak a <code>JMP</code>-nél, itt is egy címet kell
+megadnunk az A-mezõben. A különbség a <code>JMP</code> és az
+<code>SPL</code> között, hogy az <code>SPL</code> amellett, hogy az új
+címre ugrik, folytatja a végrehajtást a következõ utasításon is
+<em>párhuzamosan</em>.</p>
+
+<p>A két - vagy több - így készült process egyenlõen osztja a gépidõt
+egymás közt. Egy szimpla process counter helyett, ami az aktuális
+utasításra mutatna, a MARS egy <em>process várakozó sor</em>t használ,
+ahol a végrehajtandó processek listája áll, olyan sorrendben, ahogy
+indítva lettek. Egy <code>SPL</code>-lel létrehozott process pontosan az
+aktuális után illesztõdik be (de abban a körben már nem hajtódik végre -
+megj. a fordítótól), amik pedig <code>DAT</code>-ot hajtanak végre,
+kikerülnek a sorból. Ha minden process leáll, a harcos veszít.</p>
+
+<p>Fontos megjegyezni, hogy minden programnak <em>saját</em> process
+várakozó sora van. Ha több program van a core-ban, azok felváltva
+hajtódnak végre, <em>egy ciklus alatt mindegyikbõl egy utasítás, tekintet
+	nélkül a várakozó sor hosszára</em>, és az idõ mindig egyenlõen osztva
+adott program processei közt. Ha az 1-es programnak 3 processe van, a
+2-esnek pedig csak 1, akkor a végrehajtás sorrendje a következõ lesz:</p>
+
+  <ol>
+    <li>1-es program, 1-es process</li>
+    <li>2-es program, 1-es process</li>
+    <li>1-es program, 2-es process</li>
+    <li>2-es program, 1-es process</li>
+    <li>1-es program, 3-as process</li>
+    <li>2-es program, 1-es process</li>
+    <li>1-es program, 1-es process</li>
+    <li>2-es program, 1-es process</li>
+  </ol>
+
+<p>Végül egy rövid példa az <code>SPL</code> használatára. (Többet errõl
+majd a késõbbiekben.)</p>
+
+  <pre>
+        SPL 0            ; itt kezdõdik a végrehajtás
+        MOV 0, 1</pre>
+
+<p>Minthogy az <code>SPL</code> önmagára mutat, egy ciklus után a
+process-ek így néznek ki:</p>
+
+  <pre>
+        SPL 0            ; itt a második process
+        MOV 0, 1         ; itt az elsõ process</pre>
+
+<p>Miután mindkét process végrehajtódik, a core így fest:</p>
+
+  <pre>
+        SPL 0            ; itt a harmadik process
+        MOV 0, 1         ; itt a második process
+        MOV 0, 1         ; itt az elsõ process</pre>
+
+<p>Tehát ez a kód láthatóan impek sorozatát indítja, egyiket a másik után,
+és ezt egészen addig csinálja, amig az impek körbe nem érnek a core-on és
+felül nem írják az <code>SPL</code>-t.</p>
+
+<p>A process várakozó sor mérete minden programnál korlátozva van. Ha a
+program eléri a maximális process-számot, akkor az <code>SPL</code>
+<em>csak a következõ utasításon</em> folytatja a végrehajtást,
+tulajdonképpen leutánozva a <code>NOP</code>-ot. A legtöbb esetben a
+process korlát igen nagy, gyakran a core méretével egyezik meg, de lehet
+kevesebb is (akár 1; ekkor a multitasking nem engedélyezett).</p>
+
+<p>És lám az igazság gyakran távolabb áll tõlünk, mint a fikció.
+Nemrégiben egy web oldalon jártam, aminek címe ez volt: "Kitalált
+utasítások". A tényleg abszurd ötletek közt találtam egy utasítást:
+"<code>BBW</code> - Branch Both Ways - Ágazz kétfelé". Mivel a többi
+utasítás tényleg kitaláció volt, megállapítottam, hogy a szerzõ nem túl
+járatos a Redcode-ban...</p>
+
+  <h3><a name="start_modif">Az utasítás módosítók</a></h3>
+
+<p>A legfontosabb újdonságok, amit az ICWS '94 standard hozott, nem az
+új utasítások vagy a címzésmódok voltak, hanem a módosítók. A
+régi '88-as standard-ben a címzésmód elve eldöntötte, hogy az
+utasítás melyik részére vonatkozik. Pl. a <code>MOV 1, 2</code> mindig
+egész utasítást mozgat, míg a <code>MOV #1, 2</code> csak egy számot.
+(És <em>mindig</em> a B-mezõre!)</p>
+
+<p>Természetesen ez néha problémát okoz. Mit tegyünk, ha egy
+utasításnak csak az A- és B-mezõjét akarjuk átmásolni, és nem az egész
+címet. (Pl. <code>ADD</code>-ot akarsz használni.) És ha valamit
+a B-mezõrõl az A-mezõre akarsz másolni? (Lehetséges, de csak igen
+trükkösen.) A helyzet tisztázása végett vezették be az utasítás
+mósosítókat.</p>
+
+<p>A mósosítók nem mások mint toldalékok, amiket az utasítások
+után írunk. Ezek határozzák meg, hogy a forrásnak és a célnak
+melyik részére hasson az utasítás. Például a <code>MOV.AB 4, 5
+</code>a 4-es utasítás A-mezõjét az 5-ös utasítás B-mezõjére
+mozgatja. Összesen 7 különbözõ módosító van:</p>
+
+  <ul>
+    <li><code>MOV.A</code> - a forrás A-mezõjét a cél A-mezõjére mozgatja.</li>
+    <li><code>MOV.B</code> - a forrás B-mezõjét a cél B-mezõjére mozgatja.</li>
+    <li><code>MOV.AB</code> - a forrás A-mezõjét a cél B-mezõjére mozgatja.</li>
+    <li><code>MOV.BA</code> - a forrás B-mezõjét a cél A-mezõjére mozgatja.</li>
+    <li><code>MOV.F</code> - a forrás mindkét mezõjét a cél megfelelõ mezõire mozgatja.</li>
+    <li><code>MOV.X</code> - a forrás mindkét mezõjét a cél <em>ellentétes</em> mezõire mozgatja.</li>
+    <li><code>MOV.I</code> - az egész forrás utasítást a célra mozgatja.</li>
+  </ul>
+
+
+<p>Természetesen ugyanezek a módosítók használhatók minden utasításhoz,
+nemcsak a <code>MOV</code>-hoz, bár néhány utasítás, mint a <code>JMP</code>
+vagy az <code>SPL</code> nem veszi figyelembe õket. (Mért is tennék?
+Nem mozgatnak adatot, csak ugranak!)</p>
+
+<p>Láttuk, hogy nem minden módosító hat minden utasításra, de megpróbálnak a lehetõ
+leghasonlóbban viselkedni ahhoz, amint a módosító jelez. A leggyakrabban
+elõforduló példa a <code>.I</code> módosító. A nyelv absztraktsága miatt
+a numerikus mûveletek nem lettek definiálva az utasításokra, így
+a matematikai mûveletek nincsenek hatással rájuk. Ez azt jelenti, hogy a
+<code>MOV</code>, a <code>SEQ</code>, és az <code>SNE</code> (és persze a
+<code>CMP</code>, ami ugyanaz, mint a <code>SEQ</code>) kivételével
+a <code>.I</code> módosító ugyanazt jelenti, mint a <code>.F</code>.</p>
+
+<p>Van egy másik dolog is, amit fontos megjegyezni a <code>.I</code>-rõl
+és a <code>.F</code>-rõl, miszerint a címzésmódok is az utasítás
+részei, így nem másolódnak át a <code>MOV.F</code> utasítás
+hatására.</p>
+
+<p>Át is írhatjuk a régi programjainkat úgy, hogy használjuk a
+módosítókat. Az Imp természetesen <code>MOV.I 0, 1</code> lesz. A
+Dwarf pedig:</p>
+
+  <pre>
+        ADD.AB #4, 3
+        MOV.I  2, @2
+        JMP    -2
+        DAT    #0, #0</pre>
+
+<p>Megjegyezzük, hogy elhagytuk a módosítókat a <code>JMP</code> és a
+<code>DAT</code> mögül, mert ott nincsenek használva. A MARS
+egyébként beállítja õket <code>JMP.B</code>-re és
+<code>DAT.F</code>-re, de kit érdekel?</p>
+
+<p>Jajj, még valami! Honnan tudjuk, hogy milyen utasítás után milyen
+módosítót kell tenni, pontosabban mit tesz oda a MARS, ha elhagyjuk a
+módosítót? Általában egy kis érzékkel rá lehet jönni, de azért
+idetesszük a '94-es standard által definiált alapértelmezéseket.</p>
+
+  <dl>
+    <dt><code>DAT</code>, <code>NOP</code></dt>
+    <dd>Mindig <code>.F</code>, de nincs figyelembe véve.</dd>
+    <dt><code>MOV</code>, <code>SEQ</code>, <code>SNE</code>, <code>CMP</code></dt>
+    <dd>Ha az A-mód közvetlen, <code>.AB</code>,<br>
+    ha a B-mód közvetlen, de az A-mód nem, <code>.B</code>,<br>
+	ha egyik mód sem közvetlen, <code>.I</code>.</dd>
+    <dt><code>ADD</code>, <code>SUB</code>, <code>MUL</code>, <code>DIV</code>, <code>MOD</code></dt>
+    <dd>Ha az A-mód közvetlen, <code>.AB</code>,<br>
+    ha a B-mód közvetlen, de az A nem, <code>.B</code>,<br>
+    ha egyik mód sem közvetlen, <code>.F</code>.</dd>
+    <dt><code>SLT</code>, <code>LDP</code>, <code>STP</code></dt>
+    <dd>Ha az A-mód közvetlen, <code>.AB</code>,<br>
+    ha nem, (mindig!) <code>.B</code>.</dd>
+    <dt><code>JMP</code>, <code>JMZ</code>, <code>JMN</code>,
+<code>DJN</code>, <code>SPL</code></dt>
+    <dd>Mindig <code>.B</code>. (de a <code>JMP</code> és az
+<code>SPL</code> nem veszi figyelembe)</dd>
+  </dl>
+
+  <hr>
+
+  <h2 align=center><a name="deeper">Mélyebben '94-es 
+standard-rõl</a></h2>
+
+  <h3><a name="deep_imm">A # több, mint gondolnánk...</a></h3>
+
+<p>A <code>#</code> viselkedésének definíciója a '94-es standard-ben
+kissé furcsa. Minthogy a standard-nek 100%-ig kompatibilisnek kellett
+lennie a régi szintaxissal, a közvetlen címzésmódot nagyon okosan és
+sajátságosan definiálták, ezáltal lehetõvé vált az
+utasítás-módosítók logikus használata, és a címzésmód igen
+erõs eszközzé vált.</p>
+
+<p>Ismerve a módosítókat, lehet, hogy elgondolkozol azon, hogy a
+<code>MOV.F #7, 10</code> mit csinál? A <code>.F</code>-nek minkét
+mezõt mozgatnia kellene, de a forrásban csak egy szám van!? Talán a 7
+másolódik a cél minkét mezõjére?</p>
+
+<p>Nem, definíció alapján nem. Az történik, hogy a 7-et átviszi a
+cél A-mezõjére, a <em>10</em>-et pedig a B-mezõjére! Miért?</p>
+
+<p>Ennek az az oka, hogy a '94-es standard-ben a forrás (és a cél is)
+<em>mindig</em> egész utasítás. Közvetlen címzésmód esetén ez
+egyszerûen az aktuális utasítás (tehát 0), akármi az értéke.
+Így a <code>MOV.F #7, 10</code> átmásolja a forrás (0) mindkét
+mezõjét a célra (10). Meglepõ, ugye?</p>
+
+<p>Ugyanígy mûködik a dolog a <code>MOV.I</code> esetén is. A
+közvetlen címzés eme definíciójának köszönhetõen használhatunk
+olyan utasításokat is (akár módosító nélkülieket), amiknek a
+'88-as standardben nem sok értelmük lett volna, például <code>JMP
+#1234</code>. Természetesen nem ugorhatunk egy számra, de ugorhatunk
+ennek a számnak a címére, vagyis 0-ra. Ez aztán sok lehetõséget
+kínál nekünk, nemcsak hogy "ingyen"  tárolhatunk adatot az A-mezõn,
+de még a kód meg sem sérül nagyon, ha valaki csökkenti eggyel az
+utasítást. Ezek után írjuk át a korábbi imp-készítõ kódot kicsit
+robosztusabbra:</p>
+
+  <pre>
+        SPL    #0, }1
+        MOV.I  #1234, 1</pre>
+
+<p>Ez is ugyanúgy mûködik, de most az A-mezõk szabadok. Csak viccbõl
+csináltam, hogy az <code>SPL</code> növelje az imp A-mezõjét, így
+mindegyik imp egy kicsit más. Minthogy az <code>SPL</code> egyébként nem
+használja a B-mezõt, ez a növelés szintén "szabad". Hidd el
+mûködik - vagy próbáld ki!</p>
+
+  <h3><a name="deep_math">Modulo matematika</a></h3>
+
+<p>Már tudnod kell, hogy a core-ban a címek körbefordulnak, vagyis az
+az utasítás, ami egy core-méretnyivel az aktuális elõtt vagy után
+vannak, az az aktuális utasítás önmaga. Azonban ez a tény sokkal
+tovább mutat: a Core War-ban minden szám mindig átkonvertálódik a 0 -
+<var>core-méret</var>-1 intervallumba.</p>
+
+  <p>Azoknak, akik már tudnak programozni, és ismerik a gépi egészek matematikáját
+azt is mondhattam volna, hogy a Core War minden számot elõjeltelen egésznek
+tekint és a legnagyobb tárolható szám a <var>core-méret</var>-1. Ha ez nem
+teljesen világos, olvass tovább...</p>
+
+  <p>Gyakorlatilag a Core War-ban minden szám elosztódik a core
+hosszával, és csak a maradékot tekintjük. Ez úgy képzelhetõ el
+legkönnyebben, hogy van egy számológép, ami 8 számjegyet képes
+kiírni, és ami ezen felül van azt (a szám elejérõl) elhagyja.
+Így a 100*12345678 (ami 1234567800 lenne) 34567800-ként lesz
+kijelezve (és eltárolva). Hasonlóan, 8000 utasításos core-ral,
+7900+222 (8122) csak 122 lesz.</p>
+
+<p>És mi történik a negatív számokkal? Azok szintén normalizálódnak,
+mégpedig úgy, hogy a <var>core-méret</var> annyiszorosát adjuk hozzájuk,
+hogy pozitívak legyenek. Ez azt jelenti, hogy amikor én -1-et írtam,
+azt tulajdonképpen <var>core-méret</var>-1-ként tárolja a MARS, vagyis
+a szokásos 8000 utasításos core esetén 7999-ként.</p>
+
+<p>Természetesen ez nem okoz problémát a címeknél, amik egyébként is
+körmefordulnak. Az egyszerû matematikai mûveletek, mint az
+<code>ADD</code> vagy a <code>SUB</code> is rendben vannak, mivel
+például <var>core-méret</var>=8000 esetén 6+7998 ugyanúgy 4-et
+(8004-et) ad eredményül, mint a 6-2.</p>
+
+<p>Akkor mi a probléma? Nos, van néhány utasítás, ahol a dolog
+változtat a mûködésen. Ezek a <code>DIV</code> a <code>MOV</code>
+és az <code>SLT</code>. Ezek is mindig elõjeltelenné alakítják
+a számokat. Ez azt jelenti, hogy -2/2 nem -1, hanem (<var>core-méret</var>-2)/2 =
+(<var>core-méret</var>/2)-1. (Vagyis <var>core-méret</var>=8000-re 7998/2=3999,
+nem 7999.) Hasonló okok miatt észleli az <code>SLT</code> a -2-t (7998)
+<em>nagyobbnak</em> a 0-nál! Ténylegesen a Core War-ban a 0 a lehetséges
+legkisebb szám, így az összes többi szám nála nagyobb.</p>
+
+  <h3><a name="deep_instr">A '94-es standard utasításról utasításra</a></h3>
+
+<p>Rendben, a türelmed elnyerte jutalmát. Ezidáig csak információ-részleteket
+kaptál tõlem. Itt az idõ mindent megtudni egyszerre, tehát következnek
+az utasítások</p>
+
+<p>Persze az itt következõket a legelejére kellett volna vennem, amikor az
+<a href="#start_instr">utasításkészletrõl</a> volt szó, és ezzel talán
+megkíméltelek volna egy csomó találgatástól. De nekem (legalábbis
+szerintem) nagyon jó okom volt várni. Nemcsak azért, hogy az unalmas
+elméleti fejtegetés elõtt mutathassak néhány praktikus kódot, hanem
+azért is, mert azt akartam, hogy elõbb értsd meg a címzésmódok és
+a módosítók lényegét, és csak aztán az utasításokat
+részleteikben. Ha az utasításokról a módosítók elõtt írtam volna,
+akkor elõször a régi '88-as szabályokat kellett volna megtanulnod,
+aztán az egészet újra a módosítókkal. Nem azt mondom, hogy ez rossz
+módszer a Redcode megtanulására, de ez szükségtelenül bonyolulttá
+tette volna ezt az ismertetõt.</p>
+
+  <dl>
+  <dt><strong><code>DAT</code></strong></dt>
+<dd>Eredetileg, amint a neve is mutatja, a <code>DAT</code>-ot
+adattárolásra találták ki, mint ahogy a legtöbb programozási
+nyelvben van. De minthogy a Core War-ban annál jobb, minél kevesebb
+utasítással oldunk meg valamit, ezért a pointereket stb. gyakran
+tároljuk utasítások használatlan mezõjén. Ez pedig azt jelenti, hogy
+a <code>DAT</code> legfontosabb feladata, hogy végrehajtásával
+megállíthatunk egy process-t. Természtesen mivel a '94-es standard-ben
+nincs illegális utasítás, ezért a <code>DAT</code> is teljesen
+legális, pontosan definiált, a definíciója pedig: <cite>törli az
+éppen végrehajtott process-t a várakozó sorból</cite>. Lehet, hogy
+most kicsit lefárasztottalak, de ugye az utasítások precíz
+definíciójára a félreértések elkerülése végett igenis szükség
+van.<br>
+A módosítóknak persze semmi hatásuk nincs a <code>DAT</code>-ra,
+ezért néhány MARS el is hagyta õket. Viszont ne felejtsük el, hogy
+az utónövelés és az elõcsökkentés mindig végrehajtódik, akkor is,
+ha a mezõt semmire nem használjuk. Egy használhatatlan információ a
+<code>DAT</code>-ról, ami az elõzõ standard-ekkel való kompatibilitás
+miatt maradt fenn: ha csak egy argumentuma van, akkor az a
+<em>B-mezõre</em> kerül.</dd>
+
+  <dt><strong><code>MOV</code></strong></dt>
+<dd> A <code>MOV</code> adatot másol egyik címrõl a másikra. Ha még
+nem tudsz mindent róla, akkor újra kellene olvasnod a korábbi
+fejezeteket. A <code>MOV</code> az egyike azon kevés utasításnak,
+amelyek támogatják a <code>.I</code> módosítót, és ráadásul ez az
+alapértelmezés, ha nem adunk meg módosítót (és egyik mezõ sem
+használ közvetlen címzést).</dd>
+
+  <dt><strong><code>ADD</code></strong></dt>
+<dd>Az <code>ADD</code> hozzáadja a forrás értékét/értékeit a cél
+értékéhez/értékeihez. A módosítók ugyanúgy mûködnek mint a
+<code>MOV</code> esetén, kivéve persze, hogy <code>.I</code> nincs
+támogatva, hanem <code>.F</code>-ként viselkedik. (Mert mi lenne
+például <code>MOV.AB</code>+<code>DJN.F</code>?) Ezen kívül ne
+feledjük, hogy a Core War-ban minden matematikai mûvelet
+<a href="#deep_math">modulo core-méret</a> lesz végrehajva.</dd>
+
+  <dt><strong><code>SUB</code></strong></dt>
+<dd>Ez az utasítás pontosan úgy mûködik mint az <code>ADD</code>, kivéve a
+nyilvánvaló különbséget. Természetesen az "aritmetikai-logikai"
+utasítások nagyrészt ugyanúgy mûködnek...</dd>
+
+  <dt><strong><code>MUL</code></strong></dt>
+<dd>...amint ez a <code>MUL</code>-ra is igaz. Ha nem tudod kitalálni mit
+csinál, akkor valószínûleg kihagytál valami fontosat.</dd>
+
+  <dt><strong><code>DIV</code></strong></dt> <dd>A <code>DIV</code> szintén
+úgy mûködik, mint a <code>MUL</code> és a többiek, de egy pár dolgot
+észben kell tartanunk. Elõször is, hogy <a href="#deep_math">elõjel
+nélküli osztást</a> hajt végre, ami néha meglepõ eredményt szolgáltathat.
+<strong>A nullával való osztás megállítja a process-t</strong>, mintha egy
+<code>DAT</code> hajtódott volna végre, és a cél címen nem változtat. Ha
+<code>DIV.F</code>-et vagy <code>DIV.X</code>-et használsz két számpár
+egyidejû elosztására, és az egyik osztó 0, a másik osztás normálisan el
+lesz végezve.</dd>
+
+  <dt><strong><code>MOD</code></strong></dt>
+<dd>Minden, amit a <code>DIV</code>-rõl mondtam itt is érvényes, beleértve
+a nullával való osztást is. Ne feledjük, hogy a <code>MOD.AB
+#10,#-1</code> jellegû utasítások eredménye függ a core méretétõl. A
+szokások 8000 utasításos core esetén az eredmény 9 (7999 mod 10)</dd>
+
+  <dt><strong><code>JMP</code></strong></dt>
+<dd>A <code>JMP</code> átadja a vezérlést az A-mezõjében megadott címre. A
+nyilvánvaló, de fontos eltérés a "matematikai" utasításoktól, hogy a
+<code>JMP</code> csak a címmel törõdik, nem az adattal, amire a cím mutat.
+Egy másik fontos különbség, hogy a <code>JMP</code> nem használja a
+B-mezõjét (és így a módosítóját sem). Két címre ugrani (vagy egy
+process-t ugratni, lásd <code>SPL</code>) egyszerre túl erõs fegyver
+lenne, azonkívül a következõ három utasítás definiálását is megnehezítené.
+Ne felejtsük el, hogy rakhatunk növelést vagy csökkentést a nem használ
+B-mezõbe, ami szerencsés esetben sérülést okozhat az ellenfél
+kódjában.</dd>
+
+  <dt><strong><code>JMZ</code></strong></dt>
+<dd>Ez az utasítás a <code>JMP</code>-hez hasonlóan mûködik, de ahelyett,
+hogy figyelmen kívül hagyná a B-mezõjét, megnézi az értéket amire az
+mutat, és csak akkor ugrik, ha az nulla. Egyébként a végrehajtás a
+következõ utasításon folytatódik. Mithogy csak egy vizsgálandó utaítás
+van, a választható módosítók száma jelentõsen korlátozott. A
+<code>.AB</code> ugyanazt jelenti mint a <code>.B</code>, a
+<code>.BA</code> ugyanaz, mint a <code>.A</code>, valamint a 
+<code>.X</code> és a <code>.I</code> ugyanaz, mint a
+<code>.F</code>. Ha <code>JMZ.F</code>-fel egy utasítás minkét mezõjét
+vizsgálod, az ugrás csak akkor történik meg, ha <em>mindkét mezõ
+nulla</em>.</dd>
+
+  <dt><strong><code>JMN</code></strong></dt>
+<dd> A <code>JMN</code> ugyanúgy mûködik, mint a <code>JMZ</code>, de
+akkor ugrik, ha a vizsgál érték <em>nem</em> nulla (micsoda
+meglepetés...). A <code>JMN.F</code> akkor ugrik, ha <em>valamelyik mezõ
+nem nulla</em>.</dd>
+
+  <dt><strong><code>DJN</code></strong></dt>
+<dd>A <code>DJN</code> olyan mint a <code>JMN</code>, de vizsgált
+értéket csökkenti eggyel, <em>mielõtt</em> leteszteli azt. Ez az utasítás
+jól használható ciklusszervezésre, de szokták az ellenfél kódjának
+elrontására is használni.</dd>
+
+  <dt><strong><code>SPL</code></strong></dt>
+<dd>Ez egy nagyon fontos utasítás. Az <code>SPL</code> utasítás bevezetése
+volt talán a legnagyobb változás a nyelvben, legalább akkora, mint az
+ICWS '94-es standard bevezetése. Az <code>SPL</code> úgy mûködik, mint a
+<code>JMP</code>, de a végrehajtás a következõ utasításon <em>is</em>
+folytatódik, így a process "kettészakad" két új process-re. A következõ
+utasításon lévõ process a másik címen lévõ <em>elõtt</em> hajtódik végre.
+Ez egy apró, de nagyon fontos részlet (a legtöbb mai harcos nem mõködne
+enélkül). Ha a program eléri a maximális process-számot, akkor az
+<code>SPL</code> síma <code>NOP</code>-ként fog mûködni. Akár csak a
+<code>JMP</code>, az <code>SPL</code> is figyelmen kívül hagyja a
+B-mezõjét, és az arra vonatkozó módosítókat.</dd>
+
+  <dt><strong><code>SEQ</code></strong></dt>
+<dd>A <code>SEQ</code> összehasonlít két utasítást, és kihagyja a
+következõ utasítást, ha azok egyenlõek. (Mindig csak két utasításnyit
+ugrik elõre mert mér nincs hely az ugrási címnek.) Minthogy az utasítás
+csak egyenlõséget vizsgál, a <code>.I</code> módosító használható.
+Teljesen természetes, hogy a
+<code>.F</code>, <code>.X</code> és a <code>.I</code> módosítókkal a
+következõ utasítás csak akkor lesz átugorva, ha <em>minden</em> mezõ
+egyenlõ.</dd>
+
+  <dt><strong><code>SNE</code></strong></dt>
+  <dd>Oké, kitaláltad. Ez az utasítás átugorja a következõ utasítást, ha az
+  uatsítások, amiket összehasonlít nem egyenlõek. Ha egynél több mezõt
+hasonlítasz össze, akkor lesz ugrás, ha valamelyik pár nem egyenlõ.
+(Ismerõsen hangzik, nem? Akár a <code>JMZ</code>-nél vagy a 
+<code>JMN</code>-nél...)</dd>
+
+  <dt><strong><code>CMP</code></strong></dt>
+<dd>A <code>CPM</code> a <code>SEQ</code> másik neve. A <code>SEQ</code>
+és a <code>SNE</code> bevezetése elõtt ez volt az utasítás egyetlen neve.
+Manapség nem sokat számít melyik nevet használod, mivel a legtöbb népszerû
+MARS program a <code>SEQ</code>-t is felismeri '88-as módban is.</dd>
+
+  <dt><strong><code>SLT</code></strong></dt>
+<dd>Hasonlóan az elõzõ utasításokhoz, az <code>SLT</code> is átugorja a
+következõ utasítást, ezúttal akkor, ha az elsõ érték kisebb mint a
+második. Mivel ez egy aritmetikai, és nem egy logikai összehasonlítás,
+ezért nem reagál az a <code>.I</code>-re. Úgy tûnhet, hogy kellene egy
+<code>SGT</code> nevû utasítás is (<cite>skip if greater than</cite>), de
+a legtöbb esetben a dolog véghez vihetõ az <code>SLT</code>-vel,
+operandusok megcserélésével. Ne feledjük, hogy
+    <a href="#deep_math">minden érték elõjeltelennek lesz tekintve</a>,
+így a 0 a legkisebb, a <em>-1 pedig a legnagyobb</em> lehetséges
+szám.</dd>
+  
+<dt><strong><code>NOP</code></strong></dt>
+<dd>Nos, ez az utasítás nem csinál semmit (de azt nagyon jól csinálja!).
+Majdnem soha nem használják kész harcosokban, de nagyon hasznos
+hibakereséskor. Azért jegyezzük meg, hogy minden elõcsökkentés és
+utónövelés végrehajtódik.</dd>
+  </dl>
+
+<p>Biztos feltûnt, hogy két utasítás, név szerint az <code>LDP</code> és
+az <code>STP</code> még hiányzik. Ezek igen új elemei a nyelvnek, és
+beszélünk is róluk... öööö, nos azonnal. :-)</p>
+
+  <h3><a name="deep_space">P-space - a végsõ határ</a></h3>
+
+<p>A P-space a legutolsó módosítás a Redcode-ban, amit a pMARS 0.8-ban
+mutattak be. A "P" jelenthet privátot, permanent-et (állandó), 
+personal-t (személyes), patetikusat, és így tovább, amit szeretnél.
+Alapvetõen a P-space egy hely a memóriában, amit csak a te programod érhet
+el, és aminek tartalma megmarad a fordulók közt többfordulós meccsek
+esetén.</p>
+
+<p>A P-space több dologban különbözik a normál core-tól. Elõször is a
+P-space minden eleme csak egy számot tárolhat, nem egy egész utasítást.
+Másrészt a címzés a P-space-ben abszolút, azaz az 1-es P-space cím mindig
+ugyanaz, függetlenül attól, hogy az õt tartalmazó utasítás hol van a
+core-ban. Végül, de nem utolsósorban, a P-space csak két
+spciális utasítással érhetõ el, az
+  <code>LDP</code>-vel és az <code>STP</code>-vel.</p>
+
+  <p>A fenti utasítások szintaxisa egy kicsit szokatlan. Az
+<code>STP</code> például tekinti forrását a szokásos módon, és ezt rakja
+be a P-space-be, a cél által mutatott helyre. Így a P-space címet nem a
+cél<em>cím</em> határozza meg, hanem a cél <em>értéke</em>, vagyis az az
+érték, amit az <code>STP</code> felülírna, ha <code>MOV</code> lenne.</p>
+
+  <p>Tehát például az <code>STP.AB #4, #5</code> a 4-es <em>értéket</em>
+tenné az 5-ös <em>P-space címre</em>. Hasonlóan,</p>
+
+  <pre>
+        STP.B  2, 3
+	...
+        DAT    #0, #10
+        DAT    #0, #7</pre>
+
+<p>a 10-es értéket a <strong>7-es</strong> P-space címre tenné, nem a
+3-asra! Ebbõl szép kis kavarodás lehet, ha az <code>STP</code> maga is
+indirekt címzést használ, mert ebbõl "dupla indirekció" lesz.</p>
+
+<p>Az <code>LDP</code> ugyanígy mûködik, kivéve, hogy most a forrás egy
+P-space cím, a cél pedig egy core utasítás. A 0-ás P-space cím egy
+speciális csak olvasható cím. Az oda történõ írási kisérletek nem lesznek
+végrehajtva. Minden kör elõtt speciális értéket vesz fel: ez -1, az elsõ
+körben, 0, ha a program meghalt az elõzõ körben, egyébkent az életben
+maradt programok száma. Ez annyit jelent, hogy az egy-egy elleni meccsekre
+0 jelenti a vereséget, 1 a gyõzelmet, 2 pedig a döntetlent.</p>
+
+<p>A P-space hossza sokkal rövidebb a core-énál, tipikusan a core
+méretének 1/16-oda. A címek a P-scape-ben körbefordulnak, akár csak a
+core-ban. A P-space méretének így érdemes a core-méret hányadosát
+választani, különben valami borzasztó történik.</p>
+
+<p>Még egy különleges dolog van a pMARS-ban a P-space-rõl. Mivel az volt a
+cél, hogy a P-scape lassú elérésû legyen, így nem engedték meg, hogy egy
+utasítással két érték legyen elérhetõ. Ez egy Jó Dolog, bár az eredmény
+egy kicsit idétlen. Ez itt azt jelenti, hogy az
+<code>LDP.F</code>, a <code>.X</code> és a <code>.I</code>
+mind úgy mûködnek, mint az <code>LDP.B</code>! (És ugyanez érvényes az
+<code>STP</code>-re is, természetesen.)</p>
+
+<p>A P-space-t messze leggyakrabban a stratégia kiválasztására használják.
+Ennek legegyszerûbb formája, hogy kimentjük az elõzõ stratégiát a
+P-space-be, és változtatunk rajta, ha 0-ás P-space cím azt mondja,
+vesztettünk. Az ilyen programokat hívják P-harcosoknak, P-agyaknak vagy
+P-keknek. (ejtsd: <cite>pékek</cite>)</p>
+
+<p>Sajnos a P-space nem olyan privát mint a milyennek tûnik. Mert bár az
+ellenfeled nem tudja közvetlenül a P-space-ed írni vagy olvasni,
+elkaphatja a process-edet, és kényszerítheti, hogy az õ kódját hajtsa
+végre ami pedig tele lehet <code>STP</code>-vel. Ezt a techikát
+agymosásnak hívják, és minden P-harcosnak védekeznie kell ellene, nem
+pedig bedilizni, ha a stratégia címen valami szörnyûség van.</p>
+
+  <hr>
+
+  <h2 align=center><a name="parser">A fordító</a></h2>
+
+  <h3><a name="parse_label">Címkék és címek</a></h3>
+
+<p>Eddig a példaprogramjaink minden címét az aktuális utasításhoz
+viszonyított relatív utasításszámként adtuk meg. Ez hosszabb programokban
+problémás lehet, nem beszélve arról, hogy nehezen átlátható.
+Szerencsére nem kell így tennünk, mert a Redcode-ban lehetõségünk
+van címkék, szimbolikus konstansok, makrók és egyéb olyan dolgok
+használatára, amit az ember egy jó assembler-tõl elvár. Csak annyit
+kell tennünk, hogy megcímkézzük az utasításokat és a címkéjükre
+hivatkozzunk, és a fordító kiszámolja a relatív címet helyettünk.
+Például:</p>
+
+  <pre>
+imp:    mov.i   imp, imp+1</pre>
+
+<p>Óhhhh, mi történt? Ez a program pontosan ugyanaz, amit a
+legelején már láttunk. Csak éppen a numerikus címeket az
+"imp" címkére cseréltem. Persze jelen esetben ez nem nagyon
+szükséges. Az egyetlen utasítás, amelyikben a címkét használtuk
+az "imp" maga, így a címke 0-ra cserélhetõ.</p>
+
+<p>A végrehajtás elõtt, a MARS fordítója az összes címkét
+és egyéb szimbólumot a már ismert számokra változtatja.
+Az ilyen "elõfordított" Redcode file neve <em>load
+file</em>, mivel minden MARS ismeri a load file formátumot,
+de nem mindnek van tényleges fordítója. (load = betöltés)
+Load file formátumban az elõzõ kód <code>MOV.I 0, 1</code>
+lesz. Ugyanezt a kódot megírhatjuk így is:</p>
+
+  <pre>
+imp:    mov.i   imp, next
+next:   dat     0, 0            ; vagy bármi</pre>
+
+<p>Ebben az esetben a "next" cíkéjû utasítás egy utasítással
+az "imp" után van, így 1-re cserélõdik. Emlékezzünk rá, hogy
+a valódi címek továbbra is relatív számok, így az Imp azután
+is <code>MOV.I 0, 1</code> miután elõremásolta magát a "next"-re.</p>
+
+<p>A <code>:</code> a címkék után tulajdonképpen nem szükséges.
+Azért használtam, hogy könnyebben lásd, hol vannak a címkék, de
+általában nem használom õket saját programjaimban. Ez ízlés dolga.</p>
+
+<p>Ja, és csak ha érdekel, a Redcode nem érzékeny a kis- és nagybetûkre. (Ez
+így, ebben a formában nem igaz. A címkék ugyanis kis-nagybetû érzékenyek. Az
+utasítások valóban nem. Megj. a fordítótól.) Én úgy szeretem, hogy kisbetût
+használok a forrásokban, mert az úgy szebb, és a nagybetûket csak a "load file"
+formában.  (Leginkább, mert ez a szokás.)</p>
+
+  <h3><a name="parse_whole">A teljes program</a></h3>
+
+<p>Igaz, hogy az elõzõ fejezetek példái, általában lefordíthatók,
+de mégsem igazán kész programok, csak azok részei. Egy tipikus
+Redcode file tartalmaz néhány extra információt a MARS-ról.</p>
+
+  <pre>
+;redcode-94
+;name Imp
+;author A.K. Dewdney
+
+        org     imp
+
+imp:    mov.i   imp, imp+1
+        end</pre>
+
+<p>Amint azt valószínûleg kikövetkeztetted, minden ami a <code>;</code>
+után van az a Redcode-ban megjegyzés. E program elsõ sorai mégsem
+szokásos megjegyzések. A MARS arra használja õket, hogy néhány
+információt kiszûrjön belõlük a programról.</p>
+
+<p>Az elsõ sor, a <code>;redcode-94</code> jelenti, hogy ez
+tényleg egy Redcode file. Minden, ami ez elõtt a sor elõtt
+van, szintén megjegyzés. Igazából a MARS csak egy olyan
+sort keres, ami úgy <em>kezdõdik</em>, hogy <code>;redcode</code>,
+és így a sor maradék része használható a Redcode fajtájának
+azonosítására. Például a <a href="#parse_hill">KotH szerverek</a>
+beolvassák ezt a sort maguknak, és ebbõl azonosítják,
+hogy a program melyik hegyre tart.</p>
+
+<p> A <code>;name</code> (=név) és az <code>;author</code> (=szerzõ)
+sorok csak információkat adnak a programról. Persze ezeket
+bármilyen formában odaírhatod, de ha ezt a formát használod,
+akkor a MARS megtalálja sorokat, és pl. kijelezheti az
+információt, mikor a program fut.</p>
+
+<p> A sor, amelyikben az <code>END</code> van, a program végét
+jelzi. Minden, ami utána van, szintén megjegyzés. Együtt
+a <code>;redcode</code>-dal használahtók például arra, hogy
+belerakj egy Redcode programot egy e-mail-be.</p>
+
+<p>A sor, amiben az <code>ORG</code> van, megmutatja, hogy
+hol kezdõdjön a program végrehajtása. Így újabb utasításokat
+tehetünk a program eleje elé. Az <code>ORG</code> parancs
+a '94-es standard újításainak egyike. A régebbi szintaxisban
+ami még mindig használahtó modern programokban is, a
+kezdõcímet az <code>END</code> argumentumaként adták meg.</p>
+
+  <pre>
+;redcode-94
+;name Imp
+;author A.K. Dewdney
+
+imp:    mov.i   imp, imp+1
+
+        end     imp</pre>
+
+<p>Egyszerû, tömör, kár, hogy egy kissé illogikus. Azon kívül
+hosszú programoknál azok végére kell menned, hogy meglásd, hogy
+hol kezdõdnek. A Redcode terminológiában az <code>ORG</code>
+és az <code>END</code> neve <em>pszeudo-utasítás</em>. Rendes
+utasításoknak néznek ki, de nem fordítódnak bele a programba.</p>
+
+<p>De elég az Imp-bõl. Nézzük, hogy nézne ki a Dwarf modern
+Redcode-ban:</p>
+
+  <pre>
+;redcode-94
+;name Dwarf
+;author A.K. Dewdney
+;strategy Bombs the core at regular intervals.
+;(A fenti sor magyarul: egyenlõ intervallumokban bomázza a core-t.)
+;(kissé módosította: Ilmari Karonen)
+;assert CORESIZE % 4 == 0
+
+        org     loop
+
+loop:   add.ab  #4, bomb
+        mov.i   bomb, @bomb
+        jmp     loop
+bomb:   dat     #0, #0
+
+        end</pre>
+
+<p>Ezek a címkék sokkal érthetõbbé teszik a programot, nem?
+Megfigyelhetõ, hogy újabb két megjegyzés sort tettem hozzá a
+programhoz. A <code>;strategy</code> sor röviden leírja a programot.
+Akárhány ilyen sor lehet a programban. A legtöbb jelenlegi
+MARS kihagyja õket, szóval hagyományos megjegyzést is használhatsz
+erre (mint annál a sornál, amiben a nevem van), de a Hegyek
+kijelzik a <code>;strategy</code> sorokat másoknak. Ha az elõbbi
+programot elküldjük az egyikre, valami ilyesmi lesz a többieknek
+kijelezve:</p>
+
+  <pre>
+A new challenger has appeared on the '94 hill!
+
+Dwarf by A.K. Dewdney: (length 4)
+;strategy Bombs the core at regular intervals.
+
+[egyéb információ...]</pre>
+
+
+Új program jelent meg a '94 hegyen!
+
+Dwarf, írta A.K. Dewdney: (hossz 4)
+;strategy Bombs the core at regular intervals.
+
+[egyéb információ...]</pre>
+
+
+  <h3><a name="parse_ass">A környezet és a ;assert</a></h3>
+
+<p>A másik új elem a példánkban a <code>;assert</code> sor. Arra
+használjuk, hogy biztosak lehessünk abban, hogy a program tényleg
+mûködik az érvényben lévõ beállításokkal. A Dwarf például megöli
+magát, ha a core mérete nem osztahtó 4-gyel. Ezért használtam a
+<code>;assert CORESIZE % 4 == 0</code>-t, hogy biztos lehessek benne,
+hogy igaz.</p>
+
+<p>A <var>CORESIZE</var> elõre definiált konstans, ami a core
+hosszát tartalmazza. Ekkor az <var>n</var>+<var>CORESIZE</var>
+mindig ugyanaz a cím, mint az <var>n</var>. A <code>%</code>
+a modulus operátor, ami az osztásnál keletkezõ maradékot adja.
+Az <code>;assert</code> sorokban és máshol a Redcode-ban
+használt kifejezések szintaxisa <em>ugyanaz, mint a C-nyelvben</em>,
+bár az operátorkészlet jelentõsen korlátozott.</p>
+
+<p>Azoknak, akik nem tudnak C-ben, íme egy lista a Redcode
+kifejezésekben használható operátorokról:</p>
+
+  <dl compact>
+  <dt>Aritmetikai:</dt>
+    <dd><code>+</code> összeadás<br>
+    <code>-</code> kivonás (vagy negáció)<br>
+    <code>*</code> szorzás<br>
+    <code>/</code> osztás<br>
+    <code>%</code> modulus (maradék)</dd>
+  <dt>Összehasonlítás:</dt>
+    <dd><code>==</code> egyenlõ<br>
+    <code>!=</code> nem egyenlõ<br>
+    <code>&lt;</code> kisebb mint<br>
+    <code>&gt;</code> nagyobb mint<br>
+    <code>&lt;=</code> kisebb vagy egyenlõ<br>
+    <code>&gt;=</code> nagyobb vagy egyenlõ</dd>
+  <dt>Logikai:</dt>
+    <dd><code>&amp;&amp;</code> és<br>
+    <code>||</code> vagy<br>
+    <code>!</code> nem</dd>
+  <dt>Értékadás:</dt>
+    <dd><code>=</code> értéket ad egy <a href="#parse_var">változónak</a></dd>
+  </dl>
+
+<p> Az <code>;assert</code>-et egy logikai kifejezés követi. Ha ez hamis, a programot le
+sem fordítják. C-ben a 0 érték hamisat jelent, minden más igazat. A logikai és az
+összehasonlító operátorok minden igaz értékre 1-et adnak vissza, ami késõbb hasznos
+lesz nekünk.</p>
+
+<p>Az <code>;assert</code> tipikus használata, hogy leellenõrizzük, hogy a core
+hossza annyi-e, mint amekkora core-ra programot terveztük, pl.
+<code>;assert CORESIZE==8000</code>. Ha a program P-space-t
+használ, akkor a <code>;assert PSPACESIZE &gt; 0</code> paranccsal
+leellenõrizhetjük, hogy van-e P-space. Minthogy a péladprogramunk,
+a Dwarf, elég alkalmazkodó, így csak a <var>CORESIZE</var> oszthatóságát
+teszteltem, nem a konkrét méretét. Az Impnek, ami <em>bármilyen</em>
+beállítással elfut, <code>;assert 1</code>-et vagy
+<code>;assert 0==0</code>-t szokás megadni, vagy valamit, ami mindig
+igaz értéket ad. Ez azért hasznos, mert különben a MARS "<samp>missing
+	;assert line -- warrior may not work with the current settings."
+(hiányzó ;assert sor -- a harcos lehet, hogy nem mûködik az aktuális
+beállításokkal.)</samp> üzenetet ad.</p>
+
+<p>Néhány elõre definiált konstansot, mint pl. a <var>CORESIZE</var>-ot,
+még a '94-es standard-ben definiáltak, utána még néhany továbbit
+hozzátettek. A pMARS 0.8 minimum a következõket ismeri:</p>
+
+  <ul>
+    <li><var>CORESIZE</var> -- a core hossza (alapértelmezés 8000)</li>
+    <li><var>PSPACESIZE</var> -- a P-space hossza (aé. 500)</li>
+    <li><var>MAXCYCLES</var> -- a körök száma, ami után a meccs döntetlen (80000)</li>
+    <li><var>MAXPROCESSES</var> -- a process várakozó sor maximális hossza (8000)</li>
+    <li><var>WARRIORS</var> -- a core-ban lévõ programok száma (2)</li>
+    <li><var>MAXLENGTH</var> -- a program maximális hossza (100)</li>
+    <li><var>CURLINE</var> -- az eddig lefordított utasítások száma (1 - <var>MAXLENGTH</var>)</li>
+    <li><var>MINDISTANCE</var> -- két harcos közti minimális távolság (100)</li>
+    <li><var>VERSION</var> -- a pMARS verziója 100-zal megszorozva (80)</li>
+  </ul>
+
+
+  <h3><a name="parse_equ">#define? Hát, majdnem...</a></h3>
+
+<p>Az elõre definiált konstansok hasznosak, meg a címkék is, de ennyi az egész?
+Nem lehet változókat, vagy valami hasonlót használni?</p>
+
+<p>Hát, a Redcode assembly nyelv, és nem igazán használ változókat. De van
+valami, ami majdnem olyan jó, sõt, esetenként jobb is. Az <code>EQU</code>
+pszeudo-utasítással definiálhatunk saját konstansokat, kifejezéseket, vagy
+akár makrókat is. Ilyenformán:</p>
+
+  <pre>
+step    equ     2667</pre>
+
+
+<p>Ezután a <var>step</var> mindig kicserélõdik 2667-re. Van azonban egy
+csapdája a dolognak: a csere szöveges, nem numerikus. Ebben az esetben ez
+nem okazhat gondot, ám miközben ez az <code>EQU</code>-t komoly eszközzé
+teszi, okozhat néhány problémát, amit a C programozók már jól ismernek.
+Vegyünk egy példát:</p>
+
+  <pre>
+step    equ     2667
+target  equ     step-100
+
+start   mov.i   target, step-target</pre>
+
+<p>A <code>MOV</code> A-mezõje 2567 lesz, ahogy vártuk. Ám a B-mezõ
+értéke 2667-2667-100 == -100 lesz, nem pedig
+2667-(2667-100) == 2667-2567 == 100, ahogy azt valószínûleg akartuk
+volna. A megoldás egyszerû. Tegyünk zárójelet az összes <code>EQU</code>-s
+kifejezés köré, pl. "<code>target equ (step-100)</code>".</p>
+
+<p>A pMARS modern verzióiban megengedett a többsoros <code>equ</code>
+használata is, így létrehozhatunk hosszabb makrókat. Íme a módszer:</p>
+
+  <pre>
+dec7    equ     dat #1, #1
+        equ     dat $1, $1
+        equ     dat @1, @1
+        equ     dat *1, *1
+        equ     dat {1, {1
+        equ     dat }1, }1
+        equ     dat &lt;1, &lt;1
+
+decoy   dec7
+        dec7            ; 21 utasításos csapda
+        dec7</pre>
+
+
+  <h3><a name="parse_for">Mire hasznájuk a "rof"-ot?</a></h3>
+
+<p>Van még a pMARS fordítónak néhány képessége ami eddig kimaradt.
+Ami most következik talán erõsebb eszköz (és bonyolultabb),
+mint bármelyik másik. A <code>FOR</code> <code>ROF</code>
+pszeudo-utasítások nemcsak rövidebbé teszik a forrást és
+könnyebben lehet velük komplex kódsorozatot létrehozni, hanem
+a segítségükkel készíthetünk feltételes kódot különbözõ
+beállításokhoz.</p>
+
+<p>A <code>FOR</code> blokk - igen, kitaláltad - a <code>FOR</code>
+pszeudo-utasítással kezdõdik, majd egy szám következik: az, hogy hányszor
+kell a blokkot megismételni. Ha a blokk elõtt címke van, akkor az
+ciklusváltozóként lesz használva:</p>
+
+  <pre>
+index   for     7
+        dat     index, 10-index
+        rof</pre>
+
+<p>Amint látható, a blokk <code>ROF</code>-fal végzõdik. (Szerintem sokkal jobb,
+mint a régi <code>NEXT</code> vagy <code>REPEAT</code> klisék.)
+Az elõzõ blokkot a pMARS a következõnek fordítja:</p>
+
+  <pre>
+        DAT.F   $1, $9
+        DAT.F   $2, $8
+        DAT.F   $3, $7
+        DAT.F   $4, $6
+        DAT.F   $5, $5
+        DAT.F   $6, $4
+        DAT.F   $7, $3</pre>
+
+<p>Lehetõségünk van több <code>FOR</code> blokk egymásba ágyazására.
+A blokkok akár <code>EQU</code>-kat is tartalmazhatnak; ezzel néhány
+nagyon érdekes kódot írhatunk. Egy másik hasznos dolog, hogy a
+ciklusszámláló hosszáfûzhetõ egy címkéhez is a <code>&amp;</code> operátor
+segítségével. Ezt gyakran arra használjuk, hogy elkerüljük egy címke
+többszöri deklarálását, de számos más célra is hasznos lehet.</p>
+
+  <pre>
+dest01  equ     1000
+dest02  equ     1234
+dest03  equ     1666
+dest04  equ     (CORESIZE-1111)
+
+jtable
+ix      for     4
+jump&amp;ix spl     dest&amp;ix
+        djn.b   jump&amp;ix, #ix
+        rof</pre>
+
+<p>Ez a <code>FOR</code>/<code>ROF</code> lefordítása után a következõ lesz:</p>
+
+  <pre>
+jtable
+jump01  spl     dest01
+        djn.b   jump01, #1
+jump02  spl     dest02
+        djn.b   jump02, #2
+jump03  spl     dest03
+        djn.b   jump03, #3
+jump04  spl     dest04
+        djn.b   jump04, #4</pre>
+
+<p>Hogy mire használható még, az csak a képzeletedtõl függ. Az egyetlen
+harcosok, amiket én ilyen komplex kifejezéseket használni láttam,
+az néhány quickscanner (gyorskeresõ) volt. Az elõredefiniált konstansok
+szintén használhatók a <code>FOR</code>/<code>ROF</code>-fal, például:</p>
+
+  <pre>
+; A harcos fõ része itt van
+
+decoy
+foo     for     (MAXLENGTH-CURLINE)
+        dat     1, 1
+        rof
+
+        end</pre>
+
+<p>Az elõzõek feltöltik a harcosod maradék részét <code>DAT 1, 1</code>-gyel.
+Az ilyen csapda eltérítheti más harcosok támadását, ha gondoskodsz róla,
+hogy a programodat elmásold (<em>boot-old</em>) a csapdától távolra.
+Megjegyezném, hogy definiáltam egy <var>foo</var> nevû ciklusváltozót,
+holott nem használtam semmire. Ezt azért tettem, mert különben a MARS
+a <var>decoy</var>-t ciklusváltozónak hitte volna, pedig az címke.</p>
+
+  <pre>
+;redcode-94
+;name Tricky
+;author Ilmari Karonen
+;strategy Valami nagyon bonyolult bizbaz harcos
+;strategy (A feltételes kód önmagyarázó példája)
+;assert CORESIZE == 8000 || CORESIZE == 800
+;assert MAXPROCESSES &gt;= 256 && MAXPROCESSES &lt; 10000
+;assert MAXLENGTH &gt;= 100
+
+        org     start
+
+        for     0
+Ez itt egy for/rof megjegyzés blokk. Nullaszor lesz ismételve,
+ami annyit jelent, hogy a MARS minden itt lévõ dolgot kihagy.
+Ez egy tökéletes hely arra, hogy elmagyarázzuk azt a bonyolult
+stratégiát, amit a harcos használ.
+        rof
+
+;Természetesen hagyományos megjegyzések használata is megengedett.
+;Mindig azt a módszert használod, amelyiket akarod.
+
+        for     (CORESIZE == 8000)
+step    equ     normalstep
+;Mivel az igaz összehasonlítás eredménye 1, a hamisé pedig 0, ez a
+;kód akkor lesz lefordítva, ha az összehasonlítás igaz.
+        rof
+
+        for     (CORESIZE == 800)
+step    equ     tinystep
+;Ide pedig berakhatjuk a kisebb core-ra optimalizált konstansokat.
+        rof
+
+        for     0
+;strategy Mivel a strategy és az assert sorok valódi megjegyzések,
+;strategy ezért még FOR 0 / ROF blokkban is le lesznek fordítva!
+        rof
+
+;[A tényleges kód helye..]</pre>
+
+
+  <h3><a name="parse_var">Változatok változókra</a></h3>
+
+<p>A probléma az <code>EQU</code> által definiált konstansokkal az, hogy, hmmm,
+konstansok. Ha egyszer definiáltad õket, akkor nem tudod megváltoztatni
+az értéküket. A legtöbb esetben jók, de néhány dologra szinte lehetetlen
+használni õket.</p>
+
+<p>Szerencsére a pMARS lehetõséget ad egy pár valódi változó
+használatára is. A használatuk egy kicsit trükkös, és nagyon
+rég nem láttam senkit használni õket, de tényleg léteznek.</p>
+
+<p>A változónév mindig egybetûs, effektíve lekorlátozva a számukat
+26-ra (<var>a</var>-tól <var>z</var>-ig). Az <code>EQU</code> használata
+helyett az értékadás a <code>=</code> operátorral történik. A trükk az,
+hogy az operátor csak kifejezésban használható. És mivel a pMARS nem
+ismeri a vesszõoperátort, szükség lehet egy kamu kifejezés írására.</p>
+
+<p>Persze a változók így is hasznosak. Például a következõ automatikusan
+generált Fibonacci-sorozatot nem lehetne megírni nélkülük.</p>
+
+  <pre>
+        dat     #1, (g=0)+(f=1)
+idx     for     15
+        dat     #idx+1, (f=f+g)+((g=f-g) &amp;&amp; 0)
+        rof</pre>
+
+<p>Megjegyzendõ, hogy a <code>(g=f-g)</code> kifejezés a 0-val való
+AND-elés miatt "rejtett" lesz. A rendszer mûködik, mert a pMARS nem
+változtat a mûveletek sorrendjén, hanem az összeadásnak mindig a bal
+oldalát értékeli ki elõször, és mire a jobb oldalt számolja, az
+<var>f</var> értékét már megnövelte.</p>
+
+  <h3><a name="parse_pin">PIN és pincsi</a></h3>
+
+<p>Oké, majdnem elfelejtettem. Van még egy pszeudo-utasítás, ami kimaradt.
+Szinte soha nem használatos, de igen, van. Ez a <code>PIN</code>, ami
+"P-space Identification Number"-t, azaz "P-space azonosító szám"-ot jelent.
+Ha két programnak ugyanaz a <code>PIN</code>-je, akkor a P-space-ük
+közös lesz. Ez a process-ek közötti kommunikációra vagy kooperációra ad
+lehetõséget. Sajnos a módszer nem tûnik eredményesnek a gyors és
+hatékony kommunikáció megvalósítására. Persze ha meg akarod próbálni, hát
+rajta. Sosem lehet tudni, sikerül-e...</p>
+
+<p>Ha a programnak nincs <code>PIN</code>-ja, akkor a P-space-e
+mindig privát lesz. De ha esteleg két program osztozik a P-space-en,
+a speciális csak olvasható 0-ás cím mindig privát lesz.</p>
+
+  <h3><a name="parse_hill">Másszunk hegyet</a></h3>
+
+<p>Ha még nem tudsz róla, a King of the Hill (A Hegy Királya)
+szerverek folyamatos Core War versenyek az Interneten.
+A harcosokat e-mailben küldik a szerverre, ahol megküzdenek
+az összes (általában 10-30) hegyen lévõ programmal. Az a program,
+amelyik a legkevesebb pontot gyûjti összesen, leesik a hegyrõl,
+ahol az új harcos váltja fel. (Aki jobb pontszámot ér el legyalább
+az egyik eredeti programnál.)</p>
+
+<p>Jelenleg két KotH szerver fut, mindkettõ számos különbözõ heggyel:
+  <a href="http://www.koth.org/">a StormKing KotH szerver a koth@koth.org</a>-on és
+  <a href="../pizza/index.htm">az Internet Pizza KotH szerver a
+  pizza@ecst.csuchico.edu</a>-on. Minkettõ használ sok olyan parancsot,
+amirõl nem volt szó, leginkább speciális megjegyzéssorokat,
+mint a <code>;kill</code> vagy a <code>;password</code>.
+Mivel azonban ezek a parancsok szerverenként különbözõek,
+érdemes átnézni a saját dokumentációikat információkért.</p>
+
+<p>Megjegyezzük, hogy a hegyek, idõmegtakarítás végett általában
+elõre lefordítják a harcosokat load file-okká és ezt a formát
+tárolják, futtatják. Ez az oka annak, hogy némely elõre definiált
+konstans, pl. a  <var>WARRIORS</var>, szabálytalan, ami rejtélyes
+<code>;assert</code> hibát eredményez.</p>
+
+  <hr>
+
+  <h2><a name="history">Történet</a></h2>
+
+  <dl class=compact>
+    <dt><strong>0.50</strong></dt><dd>A fordítóról szóló fejezet befejezése. (1997. március 25.)</dd>
+    <dt>0.51</dt><dd>A  for/rof példákban lévõ hiba kijavítása</dd>
+    <dt>0.52</dt><dd><em>Az elsõ publikált változat</em></dd>
+    <dt>0.53</dt><dd>Néhány elgépelés és helyesírási hiba kijavítása</dd>
+    <dt>0.54</dt><dd>A '88 -> '94 szabályokkal való kiegészítés</dd>
+    <dt>0.55</dt><dd>A HTML szebbé tétele</dd>
+    <dt><strong>1.00</strong></dt><dd>Információ az <code>=</code> operátorról.
+	Nevezhetnénk az "1. verziónak" is... (1997. május 5.)</dd>
+    <dt>1.01</dt><dd>A &lt;DD&gt;-kkel való inkompatibilitás kijavítása.</dd>
+    <dt>1.02</dt><dd>Néhány elgépelés és illogikus mondat kijavítása. 
+	Az oldalon való navigáció egységesre hozása.</dd>
+    <dt>1.03</dt><dd>Képek eltávolítása, a dokumentum típusa Strict.</dd>
+    <dt><strong>1.10</strong></dt><dd><em>Aaaah!</em> Végig fordítva írtam az SLT-t! Kijavítva.
+    (1998. március 8.)</dd>
+	<dt><em>1.10</em></dt><dd>Magyar fordítás. (1999. július 13.)</dd>
+  </dl>
+
+  <hr>
+
+<div class=footer>
+  <p>
+  Utolsó módosítás: 1998. március 8.<br>
+Magyar fordítás: 1999. július 13.<br>
+  <a href="mailto:iltzu@sci.fi" title="Beginner's guide to Redcode">Ilmari Karonen</a>
+1997-1998.<br>
+<a href="mailto:birocs@freemail.hu" title="Redcode kezdõknek">Bíró Csaba</a>
+</p>
+</div>
+
+</body>
+</html>
+
