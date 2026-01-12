@@ -156,7 +156,7 @@ cur_display_cycle()
       wstandend(corewin);
       if (!--refreshCounter) {
         refreshCounter = refreshInterval;
-        update_statusline(round);
+        update_statusline(round_num);
         wrefresh(corewin);
       }
     }
@@ -542,7 +542,7 @@ void
 text_display_close()
 {
   if (displayLevel) {
-    update_statusline(round - 1);
+    update_statusline(round_num - 1);
     wstandout(corewin);
     mvwaddstr(corewin, 0, 0, pressAnyKey);
     wrefresh(corewin);

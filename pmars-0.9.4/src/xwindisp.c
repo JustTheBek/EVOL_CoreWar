@@ -42,6 +42,8 @@
 #include <X11/Xatom.h>
 #include <X11/keysym.h>
 #include <X11/cursorfont.h>
+extern void sighandler(int dummy);
+
 
 #define MIN_WIDTH                320        /* minimum width of the window */
 #define MIN_HEIGHT                200        /* minimum height of the window */

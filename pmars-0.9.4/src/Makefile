@@ -17,11 +17,15 @@ CC = gcc			# req. for linux
 # (7)   -DPERMUTATE                         enables -P switch
 # (9)   -DRWLIMIT                           enables read/write limits
 
-CFLAGS = -O -DGRAPHX -DXWINGRAPHX -DPERMUTATE -DRWLIMIT -DEXT94
+#CFLAGS = -O -DGRAPHX -DXWINGRAPHX -DPERMUTATE -DRWLIMIT -DEXT94 \
+#         -I/opt/homebrew/include -I/opt/homebrew/include/X11/
+CFLAGS = -O -DPERMUTATE -DRWLIMIT -DEXT94 \
+         -I/opt/homebrew/include -I/opt/homebrew/include/X11/
 LFLAGS = -x
+INCDIR = /opt/homebrew/include/X11/
 # LIB = -lcurses -ltermlib		# enable this one for curses display
 # LIB = -lvgagl -lvga			# enable this one for Linux/SVGA
-LIB = -L/usr/lib/x86_64-linux-gnu -lX11		# enable this one for X11
+LIB = -L/opt/homebrew/lib -lX11		# enable this one for X11
 
 # Build directory
 BUILD_DIR = build
@@ -37,7 +41,7 @@ HEADER = global.h config.h asm.h sim.h
 # Object files go into build/
 OBJ1 = $(BUILD_DIR)/pmars.o $(BUILD_DIR)/asm.o $(BUILD_DIR)/eval.o $(BUILD_DIR)/disasm.o $(BUILD_DIR)/cdb.o $(BUILD_DIR)/sim.o $(BUILD_DIR)/pos.o
 OBJ2 = $(BUILD_DIR)/clparse.o $(BUILD_DIR)/global.o $(BUILD_DIR)/token.o
-OBJ3 = $(BUILD_DIR)/str_eng.o
+OBJ3 = $(BUILD_DIR)/str_eng.o $(BUILD_DIR)/sighandler.o
 
 all: flags $(MAINFILE)
 
@@ -52,6 +56,7 @@ $(MAINFILE): $(OBJ1) $(OBJ2) $(OBJ3)
 
 
 # Dependencies for object files
+$(BUILD_DIR)/sighandler.o: sighandler.c
 $(BUILD_DIR)/token.o $(BUILD_DIR)/asm.o $(BUILD_DIR)/disasm.o: asm.h
 $(BUILD_DIR)/sim.o $(BUILD_DIR)/cdb.o $(BUILD_DIR)/pos.o $(BUILD_DIR)/disasm.o: sim.h
 
