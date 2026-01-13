@@ -7,3 +7,5 @@ constexpr int GENOME_SIZE  = INSTR_FIELDS * INSTR_COUNT;
 constexpr int ROUNDS = 50;
 constexpr float VARIANCE_LAMBDA = 0.1f;
 
+// CoreWar core size
+constexpr int CORESIZE = 8000;

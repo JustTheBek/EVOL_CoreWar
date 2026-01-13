@@ -4,31 +4,28 @@
 #include "Config.h"
 #include <iostream>
 
+// GA fitness wrapper
 float fitnessWrapper(GAGenome& g) {
     auto& genome = static_cast<GA1DArrayGenome<int>&>(g);
     return evaluateFitness(genome);
 }
 
 int main() {
-    // Create genome
+    // Create a genome and use Dwarf-based initialization
     GA1DArrayGenome<int> genome(GENOME_SIZE, fitnessWrapper);
-    genome.initializer(initGenome);
+    genome.initializer(initGenome); // now Dwarf-based
 
-    // Create GA
     GASimpleGA ga(genome);
-    ga.populationSize(10); //og:100
-    ga.nGenerations(20); // og:200
-    ga.pMutation(0.02);
-    ga.pCrossover(0.9);
+    ga.populationSize(20);
+    ga.nGenerations(20);
+    ga.pMutation(0.05);   // mutation probability per gene
+    ga.pCrossover(0.9);   // crossover probability
 
-    // Run evolution
+    // Run GA
     ga.evolve();
 
-    // Get the best individual from population
-    auto& best =
-        static_cast<GA1DArrayGenome<int>&>(ga.population().best());
-
     // Write best warrior
+    auto& best = static_cast<GA1DArrayGenome<int>&>(ga.population().best());
     writeWarrior(best, "best.red");
 
     std::cout << "Best fitness: " << best.score() << std::endl;

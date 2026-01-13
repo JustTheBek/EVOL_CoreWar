@@ -465,7 +465,7 @@ parse_param(largc, largv)
   * command line parameters and options                              *
   ********************************************************************/
 
-#define OPTNUM 21                /* don't forget to increase when adding new
+#define OPTNUM 22                /* don't forget to increase when adding new
                                  * options */
   static clp_opt_t options[OPTNUM];
   int     optI = 0;                /* used by record() macro */
