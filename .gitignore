@@ -1,3 +1,5 @@
 build/
 galib247/ga/libga.a
+galib247/galib_tester
 *.o
+*.exe
