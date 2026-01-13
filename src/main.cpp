@@ -17,7 +17,7 @@ int main() {
 
     GASimpleGA ga(genome);
     ga.populationSize(20);
-    ga.nGenerations(20);
+    ga.nGenerations(100);
     ga.pMutation(0.05);   // mutation probability per gene
     ga.pCrossover(0.9);   // crossover probability
 

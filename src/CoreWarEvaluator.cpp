@@ -33,8 +33,12 @@ MatchResult runMatchUnique(const std::string& warriorFile,
 
     std::string cmd = pmars + " -r " + std::to_string(ROUNDS) +
                       " -s " + std::to_string(CORESIZE) +
-                      " -b -o " + gaFile + " " + opponent +
+                      " -b " + gaFile + " " + opponent +
                       " > " + resultFile + " 2>&1";
+                      //" 2>&1 | tee " + resultFile;  // <-- pipe to tee
+
+    //std::cout << cmd << "\n";
+
 
     int ret = system(cmd.c_str());
     if(ret!=0) { r.losses=1; return r; }
@@ -62,7 +66,7 @@ MatchResult runMatchUnique(const std::string& warriorFile,
 // --------------------- Evaluate fitness ---------------------------------
 float evaluateFitness(const GA1DArrayGenome<int>& genome) {
     std::int64_t id = evalCounter++;
-    std::cout << "Eval " << id << "\n";
+    std::cout << "\n\n------------\nEval " << id << "\n";
 
     std::string warriorFile="../tmp/ga_temp.red";
     writeWarrior(genome, warriorFile);
@@ -70,19 +74,23 @@ float evaluateFitness(const GA1DArrayGenome<int>& genome) {
     std::vector<std::string> opponents = {
         "../warriors/dwarf.red",
         "../warriors/Imp.red",
+        //"../warriors/stonescanner.red",
         "../warriors/paper.red"
     };
 
     std::vector<std::future<MatchResult>> futures;
     for(size_t i=0;i<opponents.size();++i)
         futures.push_back(std::async(std::launch::async,
-                                     runMatchUnique, warriorFile, opponents[i], (int)i));
+                                     runMatchUnique,
+                                     warriorFile,
+                                     opponents[i],
+                                     (int)i));
 
     float sum=0;
     std::vector<float> scores;
     for(auto& fut : futures) {
         MatchResult r = fut.get();
-        float f = static_cast<float>(r.wins)/ROUNDS
+        float f = 2.0*static_cast<float>(r.wins)/ROUNDS
                 + 0.5f*static_cast<float>(r.ties)/ROUNDS
                 - static_cast<float>(r.losses)/ROUNDS;
         scores.push_back(f);
