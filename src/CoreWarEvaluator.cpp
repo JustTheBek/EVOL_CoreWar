@@ -6,86 +6,111 @@
 #include <vector>
 #include <cmath>
 #include <cstdlib>
+#include <iostream>
+#include <thread>
+#include <future>
+#include <string>
+#include <atomic>
 
-//relative path from build folder, TODO: think about better solution
-const std::string pmars= "../pmars-0.9.4/src/build/pmars";
+const std::string pmars = "../pmars-0.9.4/src/build/pmars";
+static std::atomic<std::int64_t> evalCounter{0};
 
-MatchResult runMatch(const std::string& opponent) {
+// --------------------- Run a single match --------------------------------
+MatchResult runMatchUnique(const std::string& warriorFile,
+                           const std::string& opponent,
+                           int idx)
+{
     MatchResult r{0,0,0,0,0};
+    std::string gaFile  = "../tmp/ga_" + std::to_string(idx) + ".red";
+    std::string resultFile = "../tmp/result_" + std::to_string(idx) + ".txt";
 
-    std::string cmd =
-        pmars + " -r " + std::to_string(ROUNDS) +
-        " -b -o ../tmp/ga.red " + opponent +
-        " > ../tmp/result.txt";
+    // Copy genome file
+    {
+        std::ifstream src(warriorFile, std::ios::binary);
+        std::ofstream dst(gaFile, std::ios::binary);
+        dst << src.rdbuf();
+    }
 
-    // Run the match
+    std::string cmd = pmars + " -r " + std::to_string(ROUNDS) +
+                      " -s " + std::to_string(CORESIZE) +
+                      " -b " + gaFile + " " + opponent +
+                      " > " + resultFile + " 2>&1";
+                      //" 2>&1 | tee " + resultFile;  // <-- pipe to tee
+
+    //std::cout << cmd << "\n";
+
+
     int ret = system(cmd.c_str());
-    if (ret != 0) {
-        std::cerr << "Warning: system call returned " << ret << "\n";
-    }
+    if(ret!=0) { r.losses=1; return r; }
 
-    // Ensure the result file exists (create if missing)
-    std::ofstream resultFile("../tmp/result.txt", std::ios::app);
-    resultFile.close();
+    std::ifstream file(resultFile);
+    if(!file) { r.losses=1; return r; }
 
-    std::ifstream file("../tmp/result.txt");
     std::string line;
-
-    while (std::getline(file, line)) {
-
-        if (line.find("ga.red") != std::string::npos &&
-            line.find("scores") != std::string::npos) {
-            sscanf(line.c_str(), "%*[^s]scores %d", &r.myScore);
-        }
-
-        if (line.find(opponent) != std::string::npos &&
-            line.find("scores") != std::string::npos) {
-            sscanf(line.c_str(), "%*[^s]scores %d", &r.oppScore);
-        }
-
-        if (line.find("Results:") != std::string::npos) {
-            sscanf(line.c_str(),
-                   "Results: %d %d %d",
-                   &r.wins, &r.ties, &r.losses);
+    bool found=false;
+    while(std::getline(file,line)) {
+        if(line.find("Results:")!=std::string::npos) {
+            int first, second, third;
+            sscanf(line.c_str(), "Results: %d %d %d", &first,&second,&third);
+            r.wins = first;
+            r.losses = second;
+            r.ties = third;
+            found=true;
+            break;
         }
     }
-
+    if(!found) r.losses=1;
     return r;
 }
 
+// --------------------- Evaluate fitness ---------------------------------
 float evaluateFitness(const GA1DArrayGenome<int>& genome) {
-    writeWarrior(genome, "../tmp/ga.red");
+    std::int64_t id = evalCounter++;
+    std::cout << "\n\n------------\nEval " << id << "\n";
 
-    //relative path from build folder, TODO: think about better solution
+    std::string warriorFile="../tmp/ga_temp.red";
+    writeWarrior(genome, warriorFile);
+
     std::vector<std::string> opponents = {
         "../warriors/dwarf.red",
         "../warriors/Imp.red",
+        //"../warriors/stonescanner.red",
         "../warriors/paper.red"
     };
 
+    std::vector<std::future<MatchResult>> futures;
+    for(size_t i=0;i<opponents.size();++i)
+        futures.push_back(std::async(std::launch::async,
+                                     runMatchUnique,
+                                     warriorFile,
+                                     opponents[i],
+                                     (int)i));
+
+    float sum=0;
     std::vector<float> scores;
-    float sum = 0.0f;
-
-    for (const auto& opp : opponents) {
-        MatchResult r = runMatch(opp);
-
-        float f =
-            (r.myScore - r.oppScore)
-          + 5.0f * r.wins
-          - 5.0f * r.losses;
+    for(auto& fut : futures) {
+        MatchResult r = fut.get();
+        //float f = 2.0*static_cast<float>(r.wins)/ROUNDS
+        //        + 0.5f*static_cast<float>(r.ties)/ROUNDS
+        //        - static_cast<float>(r.losses)/ROUNDS;
+        float f = 5.0f*static_cast<float>(r.wins)/ROUNDS
+                + 0.4f*static_cast<float>(r.ties)/ROUNDS
+                - 1.0f*static_cast<float>(r.losses)/ROUNDS;
 
         scores.push_back(f);
         sum += f;
     }
 
     float mean = sum / scores.size();
-
     float variance = 0.0f;
-    for (float f : scores) {
-        variance += (f - mean) * (f - mean);
-    }
+    for(float f : scores) variance += (f-mean)*(f-mean);
     variance /= scores.size();
 
-    return mean - VARIANCE_LAMBDA * variance;
-}
+    float rawFitness = mean - VARIANCE_LAMBDA*variance;
 
+    std::cout << "Match scores: ";
+    for(float f : scores) std::cout << f << " ";
+    std::cout << "=> rawFitness=" << rawFitness << "\n";
+
+    return rawFitness;
+}

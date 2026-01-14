@@ -1,6 +1,14 @@
+#---------------------------------------------------------------------------------------
+#
+# Updated Makefile allowing to build both the GUI and the Terminal version of pMars.
+# Author: JustTheBek
+# Date: 2026.01.14
+#
+#---------------------------------------------------------------------------------------
+
 # generic UNIX makefile
 CC = gcc			# req. for linux
-#CC = cc				# if you don't have gcc
+
 # Configuration options:
 #
 # No.   Name            Incompatible with   Description
@@ -17,31 +25,34 @@ CC = gcc			# req. for linux
 # (7)   -DPERMUTATE                         enables -P switch
 # (9)   -DRWLIMIT                           enables read/write limits
 
-#CFLAGS = -O -DGRAPHX -DXWINGRAPHX -DPERMUTATE -DRWLIMIT -DEXT94 \
-#         -I/opt/homebrew/include -I/opt/homebrew/include/X11/
-CFLAGS = -O -DPERMUTATE -DRWLIMIT -DEXT94 \
-         -I/opt/homebrew/include -I/opt/homebrew/include/X11/
-LFLAGS = -x
-INCDIR = /opt/homebrew/include/X11/
+
+# Base configuration options
+CFLAGS = -O2 -Wall -Wextra -DPERMUTATE -DRWLIMIT -DEXT94
+
+# Linker flags
+LIB =
 # LIB = -lcurses -ltermlib		# enable this one for curses display
 # LIB = -lvgagl -lvga			# enable this one for Linux/SVGA
-LIB = -L/opt/homebrew/lib -lX11		# enable this one for X11
 
-# Build directory
+
+# Build directories
 BUILD_DIR = build
+GUI_DIR   = gui_build
 
-# Ensure build directory exists
+# Ensure build directories exist
 $(shell mkdir -p $(BUILD_DIR))
+$(shell mkdir -p $(GUI_DIR))
 
 .SUFFIXES: .o .c .c~ .man .doc .6
 MAINFILE = $(BUILD_DIR)/pmars
+GUIFILE  = $(GUI_DIR)/pmars_gui
 
 HEADER = global.h config.h asm.h sim.h 
 
-# Object files go into build/
+# Object files for normal build
 OBJ1 = $(BUILD_DIR)/pmars.o $(BUILD_DIR)/asm.o $(BUILD_DIR)/eval.o $(BUILD_DIR)/disasm.o $(BUILD_DIR)/cdb.o $(BUILD_DIR)/sim.o $(BUILD_DIR)/pos.o
 OBJ2 = $(BUILD_DIR)/clparse.o $(BUILD_DIR)/global.o $(BUILD_DIR)/token.o
-OBJ3 = $(BUILD_DIR)/str_eng.o $(BUILD_DIR)/sighandler.o
+OBJ3 = $(BUILD_DIR)/str_eng.o #$(BUILD_DIR)/sighandler.o
 
 all: flags $(MAINFILE)
 
@@ -54,6 +65,33 @@ $(MAINFILE): $(OBJ1) $(OBJ2) $(OBJ3)
 	@strip $(MAINFILE)
 	@echo done
 
+# GUI target
+gui: gui_flags $(GUIFILE)
+
+gui_flags:
+	@echo Building GUI version in $(GUI_DIR)
+	$(eval CFLAGS := $(CFLAGS) -DGRAPHX -DXWINGRAPHX)
+	$(eval LIB := -lX11)
+
+# GUI object files (same sources, different build folder)
+GUI_OBJ1 = $(GUI_DIR)/pmars.o $(GUI_DIR)/asm.o $(GUI_DIR)/eval.o $(GUI_DIR)/disasm.o $(GUI_DIR)/cdb.o $(GUI_DIR)/sim.o $(GUI_DIR)/pos.o
+GUI_OBJ2 = $(GUI_DIR)/clparse.o $(GUI_DIR)/global.o $(GUI_DIR)/token.o
+GUI_OBJ3 = $(GUI_DIR)/str_eng.o #$(BUILD_DIR)/sighandler.o
+
+$(GUIFILE): $(GUI_OBJ1) $(GUI_OBJ2) $(GUI_OBJ3)
+	@echo Linking GUI $(GUIFILE)
+	@$(CC) -o $(GUIFILE) $(GUI_OBJ1) $(GUI_OBJ2) $(GUI_OBJ3) $(LIB)
+	@strip $(GUIFILE)
+	@echo done
+
+# Compile .c -> .o into build/ or gui_build/
+$(BUILD_DIR)/%.o: %.c
+	@echo Compiling $< -> $@
+	@$(CC) $(CFLAGS) -c $< -o $@
+
+$(GUI_DIR)/%.o: %.c
+	@echo Compiling GUI $< -> $@
+	@$(CC) $(CFLAGS) -c $< -o $@
 
 # Dependencies for object files
 $(BUILD_DIR)/sighandler.o: sighandler.c
@@ -67,15 +105,13 @@ $(BUILD_DIR)/sim.o: curdisp.c uidisp.c lnxdisp.c xwindisp.c
 $(BUILD_DIR)/xwindisp.o: xwindisp.h pmarsicn.h
 $(BUILD_DIR)/lnxdisp.o: lnxdisp.h
 
+# GUI dependencies
+$(GUI_DIR)/xwindisp.o: xwindisp.h pmarsicn.h
+$(GUI_DIR)/lnxdisp.o: lnxdisp.h
+
 # General dependencies for all objects
 $(OBJ1) $(OBJ2) $(OBJ3): Makefile config.h global.h
-
-# Compile .c -> .o into build/
-$(BUILD_DIR)/%.o: %.c
-	@echo Compiling $< -> $@
-	@$(CC) $(CFLAGS) -c $< -o $@
-
+$(GUI_OBJ1) $(GUI_OBJ2) $(GUI_OBJ3): Makefile config.h global.h
 
 clean:
-	rm -rf $(BUILD_DIR)
-
+	rm -rf $(BUILD_DIR) $(GUI_DIR)
