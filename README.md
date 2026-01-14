@@ -2,14 +2,19 @@
 
 Our groups solution of the Core War assignment of the Evolutionary and Logic-based AI class at FHTW in the first semester.
 
-This project evolves Core War warriors using a Genetic Algorithm (GALib)
-and evaluates them using pMARS 0.9.4.
+This project evolves Core War warriors using a Genetic Algorithm (GALib) and evaluates them using the pMARS 0.9.4. simulator.
+
+More about:  
+***CoreWar***: https://corewar.co.uk/index.htm  
+***Redcode***: https://corewar.co.uk/karonen/guide.htm  
+***pMars***:   https://corewar.co.uk/pmars.htm  
+***GALib***:   http://lancet.mit.edu/ga/  
 
 ---
 
 ## 1. Main Idea:
 
-The core idea of this project is to **evolve Core War warriors** using a **Genetic Algorithm (GA)**, creating programs that can survive and outperform well-known competitors in the Core War virtual machine, *pMars*. The system automatically generates, evaluates, and evolves warriors over multiple generations to improve their performance in simulated battles.
+The core idea of this project is to **evolve Core War warriors** using a **Genetic Algorithm (GA)**, creating programs that can survive or even outperform well-known competitors in the Core War virtual machine, *pMars* simulator. The system automatically generates, evaluates, and evolves warriors over multiple generations to improve their performance in simulated battles.
 
 #### Basic Principles
 
@@ -18,6 +23,7 @@ The core idea of this project is to **evolve Core War warriors** using a **Genet
    - Each Core War instruction is encoded as **five integers**: `[opcode, A_mode, A_value, B_mode, B_value]`.
    - The full warrior consists of 15 instructions, resulting in a genome length of 75 integers.
    - This genome representation allows the GA to **mutate and recombine instructions** systematically, enabling evolution.
+
 2. **Genetic Algorithm Setup**The evolution process uses a **1D array genome GA** with standard operators:
 
    - **Selection:** Warriors with higher fitness are more likely to pass on their genome.
@@ -25,17 +31,20 @@ The core idea of this project is to **evolve Core War warriors** using a **Genet
    - **Mutation:** Slight random changes in the genome introduce variation, allowing exploration of new strategies.
 
    Users can configure the GA via command-line parameters for **population size, number of generations, mutation probability, and crossover probability**.
+
 3. **Fitness Evaluation**The **fitness function** is the heart of evolution. Each warrior genome is evaluated by running it in **simulated battles against a set of known warriors** (e.g., Dwarf, Imp, Paper).
 
    - Multiple matches are run in parallel (max. 3 threads) to improve efficiency.
    - Each match contributes a score based on wins, losses, and ties.
    - Variance in match outcomes is penalized to favor **robust, consistent warriors** rather than lucky ones.
    - The GA then selects the warriors with the highest fitness to propagate into the next generation.
+
 4. **Dwarf as Initial Warrior**To provide a **strong starting point**, the evolution process uses the **Dwarf warrior** as a template for initial genomes.
 
    - Early generations are **biased toward Dwarf’s instruction patterns**, ensuring that the GA starts from a known viable strategy.
    - Mutations in early generations are small, allowing gradual exploration of variations without immediate destructive changes.
    - As generations progress, larger mutations are allowed, enabling the GA to discover new, potentially superior strategies.
+
 5. **Safety Constraints and Strategy Design**To prevent self-destructive behavior during evolution:
 
    - The first few instructions are treated as a **safe code region**, where dangerous instructions like `DAT` cannot execute.
@@ -58,6 +67,7 @@ The core idea of this project is to **evolve Core War warriors** using a **Genet
 ## 2. Repository structure:
 
 .  
+├── best                 ← All time best warriors are archived here (manually)  
 ├── build                ← Build directory for Evolution App  
 ├── build_and_run.sh     ← Bash script to build and run everything  
 ├── CMakeLists.txt       ← CMake configuration  
@@ -218,7 +228,9 @@ This open the GUI windows with the memory visualization. Press s+Enter to start.
 
 ## 4. Results:
 
-The currently best performing warriors managed to survive 200 rounds against well-known warriors, such as Imp, Paper, Stonescan, and to survive approximately 3/4 of the rounds against Dwarf.
+The currently best performing warriors managed to survive 200 rounds against well-known warriors, such as Imp, Paper, Stonescan, and to survive approximately 3/4 of the rounds against Dwarf.  
+
+The all time best warriors produced by different application runs are stored under ./best  
 
 ---
 
@@ -375,14 +387,14 @@ Several modifications were necessary for successful compilation on modern macOS 
 
 After building, the key directories and files are:
 
-galib247/
-├── ga/ # Core library files
-│ ├── libga.a # Compiled static library
-│ ├── *.c, *.h # Source and headers
-│ └── ...
-├── galib_tester.cpp # Test program
-├── build_galib_tester.sh # Shell script to build tester
-└── doc/ # Documentation
+galib247/  
+├── ga/ # Core library files  
+│ ├── libga.a # Compiled static library  
+│ ├── *.c, *.h # Source and headers  
+│ └── ...  
+├── galib_tester.cpp # Test program  
+├── build_galib_tester.sh # Shell script to build tester  
+└── doc/ # Documentation  
 
 #### VI. Summary
 
