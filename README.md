@@ -57,28 +57,28 @@ The core idea of this project is to **evolve Core War warriors** using a **Genet
 
 ## 2. Repository structure:
 
-.
-├── build                ← Build directory for Evolution App
-├── build_and_run.sh     ← Bash script to build and run everything
-├── CMakeLists.txt       ← CMake configuration
-├── galib247             ← Galib sources (tailored to this project)
-├── include              ← Header files of the Evolution App
-│   ├── Config.h
-│   ├── CoreWarEvaluator.h
-│   └── WarriorEncoder.h
-├── knowhow
-├── pmars-0.9.4          ← CoreWar simulator source (tailored to this project)
-├── README.md            ← this README
-├── src                  ← C++ source files of Evolution App
-│   ├── CoreWarEvaluator.cpp
-│   ├── main.cpp
-│   └── WarriorEncoder.cpp
-├── tmp                  ← Temporary files (used by Evolution App)
-└── warriors             ← Reference warrior programs (used during evolution)
-    ├── dwarf.red
-    ├── Imp.red
-    ├── paper.red
-    └── stonescan.red
+.  
+├── build                ← Build directory for Evolution App  
+├── build_and_run.sh     ← Bash script to build and run everything  
+├── CMakeLists.txt       ← CMake configuration  
+├── galib247             ← Galib sources (tailored to this project)  
+├── include              ← Header files of the Evolution App  
+│   ├── Config.h  
+│   ├── CoreWarEvaluator.h  
+│   └── WarriorEncoder.h  
+├── knowhow  
+├── pmars-0.9.4          ← CoreWar simulator source (tailored to this project)  
+├── README.md            ← this README  
+├── src                  ← C++ source files of Evolution App  
+│   ├── CoreWarEvaluator.cpp  
+│   ├── main.cpp  
+│   └── WarriorEncoder.cpp  
+├── tmp                  ← Temporary files (used by Evolution App)  
+└── warriors             ← Reference warrior programs (used during evolution)  
+    ├── dwarf.red  
+    ├── Imp.red  
+    ├── paper.red  
+    └── stonescan.red  
 
 ---
 
