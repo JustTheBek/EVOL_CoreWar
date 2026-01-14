@@ -223,6 +223,9 @@ This open the GUI windows with the memory visualization. Press s+Enter to start.
 ./pmars_gui
 ```
 
+Look of the simulator GUI:  
+
+![Look of the simulator](./screenshots/BestVsStoneScan_GUI.png)
 
 ---
 
@@ -231,6 +234,17 @@ This open the GUI windows with the memory visualization. Press s+Enter to start.
 The currently best performing warriors managed to survive 200 rounds against well-known warriors, such as Imp, Paper, Stonescan, and to survive approximately 3/4 of the rounds against Dwarf.  
 
 The all time best warriors produced by different application runs are stored under ./best  
+
+F.E.:Results of best_1_225 against the other warriors:
+
+![Results of the best warrior](./screenshots/BestVsOthers.png)
+
+The warrior best_1_225 was received as a results of an evolution with:
+
+```
+./build_and_run.sh -t app -r -p 50 -g 200 -m 0.05 -c 0.9 
+```
+Attention: runs long!
 
 ---
 
