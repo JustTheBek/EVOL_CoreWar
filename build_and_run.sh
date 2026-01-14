@@ -54,14 +54,17 @@ build_pMars()
     cd "$pmars_build_dir" || { echo "ERROR: pMars build dir doesn't exist"; exit 1; }
 
     make clean
-    make
+    make          # build Terminal version first
+    make gui      # build GUI version afterwards
 
     if [ ! -f ./build/pmars ]; then
         echo "ERROR: pMars binary not found!"
         exit 1
     fi
 
+    # Copy build artifacts to main dir (makes it easyer for the user to play around)
     cp ./build/pmars "$main_dir"
+    cp ./gui_build/pmars_gui "$main_dir"
 }
 
 build_galib()
