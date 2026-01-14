@@ -7,6 +7,12 @@ target="none"
 main_dir="$(pwd)"
 run_evol=false
 
+# Default GA parameters
+ga_population=20
+ga_generations=100
+ga_mutation=0.05
+ga_crossover=0.9
+
 app_build_dir="${main_dir}/build"
 tmp_dir="$(pwd)/tmp"
 
@@ -20,17 +26,23 @@ build_evol_app()
     echo "Building Evolution App"
     sleep 1
 
-    # make dirs if they don't exist
-    mkdir -p "$app_build_dir"
+    # make tmp dir if it doesn't exist
     mkdir -p "$tmp_dir"
 
+    # go to main dir for safety
+    cd "$main_dir" || { echo "ERROR: Main directory not found"; exit 1; }
+
+    # fully clean build folder
+    rm -rf "$app_build_dir"
+    mkdir -p "$app_build_dir"
     cd "$app_build_dir" || { echo "ERROR: App build dir doesn't exist"; exit 1; }
 
     # call CMake to generate makefiles
-    cmake .. 
+    cmake ..
 
     # build
     make
+
 }
 
 build_pMars()
@@ -65,22 +77,25 @@ build_galib()
 }
 
 
-while getopts ":at:rh" opt; do
+# Parse command-line options
+while getopts ":at:rhp:g:m:c:" opt; do
   case "$opt" in
-    a) # (re)build all targets
-      target="all"
-      ;;
-    t) # (re)build selected target only
-      target="$OPTARG"
-      ;;
-    r) # run evolution
-      run_evol=true
-      ;;
-    h|\?)
+    a) target="all" ;;
+    t) target="$OPTARG" ;;
+    r) run_evol=true ;;
+    p) ga_population="$OPTARG" ;;
+    g) ga_generations="$OPTARG" ;;
+    m) ga_mutation="$OPTARG" ;;
+    c) ga_crossover="$OPTARG" ;;
+    h|\?) 
       echo "Usage: $(basename "$0")"
-      echo "   [-a].......... (Re)build all targets."
-      echo "   [-t arg].......(Re)build the selected target [pMars / galib / app]."
-      echo "   [-r]...........Run Evolution App (everything has to be built before)."
+      echo "   [-a].............. (Re)build all targets."
+      echo "   [-t <target>]..... (Re)build the selected target [pMars / galib / app]."
+      echo "   [-r].............. Run Evolution App (requires build first)."
+      echo "   [-p <population>].. GA population size (default: 20)"
+      echo "   [-g <generations>]  GA number of generations (default: 100)"
+      echo "   [-m <mutation>].... GA mutation probability (default: 0.05)"
+      echo "   [-c <crossover>]... GA crossover probability (default: 0.9)"
       exit 0
       ;;
   esac
@@ -119,8 +134,8 @@ if [ "$run_evol" = true ]; then
   echo "Running Evolution App (this can take longer)"
   sleep 0.5
 
-  if ! ./corewar_ga; then
-      echo "ERROR: Evolution App failed"
-      exit 1
+  if ! ./corewar_ga "$ga_population" "$ga_generations" "$ga_mutation" "$ga_crossover"; then
+    echo "ERROR: Evolution App failed"
+    exit 1
   fi
 fi

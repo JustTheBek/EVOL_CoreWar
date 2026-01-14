@@ -144,15 +144,18 @@ void initGenome(GAGenome& g) {
 }
 
 // ======================================================================
-//  Write warrior (SAFE + LETHAL, Core War correct)
+//  Write warrior (SAFE + LETHAL + SCANNING)
 //
-//  This function ENFORCES survival constraints while still allowing:
-//   - DAT bombing
-//   - SPL flooding
-//   - JMP loops
-//   - MOV-based attacks
+//  This version allows:
+//   - DAT bombing outside SAFE_CODE_LEN
+//   - SPL flooding forward
+//   - JMP loops inside SAFE_CODE_LEN
+//   - MOV-based scanning of opponent
 //
-//  Without these rules, evolution ALWAYS converges to suicide.
+//  Safety constraints prevent suicide:
+//   - No DAT in executable code
+//   - Indirect addressing (@, <, >, *) only outside code
+//   - Arithmetic only modifies safe memory
 // ======================================================================
 void writeWarrior(const GA1DArrayGenome<int>& g, const std::string& filename) {
     std::ofstream out(filename);
@@ -179,9 +182,6 @@ void writeWarrior(const GA1DArrayGenome<int>& g, const std::string& filename) {
 
         // ==============================================================
         // 2) HARD RULE: Executable code must NEVER kill itself
-        //
-        //    - DAT in code = instant death
-        //    - Convert DAT → NOP inside SAFE_CODE_LEN
         // ==============================================================
         if(isDAT && instrIndex < SAFE_CODE_LEN) {
             opcode = "NOP";
@@ -190,28 +190,20 @@ void writeWarrior(const GA1DArrayGenome<int>& g, const std::string& filename) {
 
         // ==============================================================
         // 3) Addressing modes
-        //
-        //    CRITICAL RULE:
-        //    Indirect addressing (@ < > *) inside executable code
-        //    almost always points back into own program → suicide.
-        //
-        //    Therefore:
-        //      - Code region: ONLY # and $
-        //      - Bombing region: allow @
         // ==============================================================
         char am = '#';
         char bm = '#';
 
         if(instrIndex < SAFE_CODE_LEN) {
-            // EXECUTABLE REGION (safe)
+            // Executable region: only safe modes
             static const char execModes[] = {'#', '$'};
-            am = execModes[GARandomInt(0, 1)];
-            bm = execModes[GARandomInt(0, 1)];
+            am = execModes[GARandomInt(0,1)];
+            bm = execModes[GARandomInt(0,1)];
         } else {
-            // NON-EXECUTABLE REGION (weapons allowed)
+            // Weapon region: allow indirect for attacks
             static const char bombModes[] = {'#', '$', '@'};
-            am = bombModes[GARandomInt(0, 2)];
-            bm = bombModes[GARandomInt(0, 2)];
+            am = bombModes[GARandomInt(0,2)];
+            bm = bombModes[GARandomInt(0,2)];
         }
 
         // ==============================================================
@@ -223,57 +215,45 @@ void writeWarrior(const GA1DArrayGenome<int>& g, const std::string& filename) {
         if(isDAT) {
             // ----------------------------------------------------------
             // DAT = BOMB
-            //
-            // RULES:
-            //  - Must NEVER point into executable code
-            //  - Random far target improves bombing effectiveness
+            // - Must point outside executable code
+            // - Random far target improves attack chance
             // ----------------------------------------------------------
-            am = '#';  // Immediate DAT payload (ICWS safe)
+            am = '#';
             av = GARandomInt(SAFE_CODE_LEN + 20, CORESIZE - 1);
-        }
-        else {
-            // ----------------------------------------------------------
-            // Non-DAT instructions
-            //
-            // Executable code uses SHORT offsets (loops, scans)
-            // Bombing code uses WIDER offsets (attack surface)
-            // ----------------------------------------------------------
+        } else {
             if(instrIndex < SAFE_CODE_LEN) {
+                // Short offsets for loops and scanning
                 av = (g[i+2] % 20 + 20) % 20;
                 bv = (g[i+4] % 20 + 20) % 20;
+
+                // ------------------------------------------------------
+                // MOV-based scanning: occasionally read opponent memory
+                // ------------------------------------------------------
+                if(opcode == "MOV" && GARandomFloat() < 0.3f) {
+                    // Scan a bit further ahead
+                    bv = SAFE_CODE_LEN + GARandomInt(20, 50);
+                }
             } else {
+                // Weapon region: large offsets
                 av = (g[i+2] % 400 + 400) % 400;
                 bv = (g[i+4] % 400 + 400) % 400;
             }
         }
 
         // ==============================================================
-        // 5) ARITHMETIC SAFETY RULE
-        //
-        // ADD / SUB / MUL / DIV / MOD modifying executable code
-        // destroys instruction semantics → suicide.
-        //
-        // Therefore:
-        //   Arithmetic is allowed ONLY if B operand is outside code.
+        // 5) Arithmetic safety
         // ==============================================================
         if(instrIndex < SAFE_CODE_LEN &&
            (opcode == "ADD" || opcode == "SUB" ||
             opcode == "MUL" || opcode == "DIV" ||
             opcode == "MOD")) {
-
+            // Only modify memory outside executable region
             bm = '$';
             bv = SAFE_CODE_LEN + GARandomInt(0, 30);
         }
 
         // ==============================================================
-        // 6) SPL FLOODING (controlled, non-suicidal)
-        //
-        // SPL is extremely powerful but dangerous.
-        //
-        // RULES:
-        //  - SPL only allowed in executable region
-        //  - SPL must fork FORWARD into executable code
-        //  - Never fork into bombs or DAT
+        // 6) SPL flooding (controlled)
         // ==============================================================
         if(opcode == "SPL") {
             if(instrIndex >= SAFE_CODE_LEN - 1) {
@@ -281,12 +261,21 @@ void writeWarrior(const GA1DArrayGenome<int>& g, const std::string& filename) {
                 opcode = "NOP";
             } else {
                 am = '$';
+                // Fork forward inside executable region
                 av = instrIndex + GARandomInt(1, SAFE_CODE_LEN - instrIndex - 1);
             }
         }
 
         // ==============================================================
-        // 7) Emit instruction (ICWS'94 compliant syntax)
+        // 7) Optional harmless NOP insertion (small % chance)
+        // ==============================================================
+        if(opcode != "DAT" && GARandomFloat() < 0.05f) {
+            out << "NOP.F #0, #0\n";
+            continue;
+        }
+
+        // ==============================================================
+        // 8) Emit instruction (ICWS'94 compliant)
         // ==============================================================
         if(opcode == "JMP" || opcode == "SPL") {
             out << opcode << " " << am << av << "\n";
@@ -302,3 +291,4 @@ void writeWarrior(const GA1DArrayGenome<int>& g, const std::string& filename) {
         }
     }
 }
+

@@ -90,9 +90,13 @@ float evaluateFitness(const GA1DArrayGenome<int>& genome) {
     std::vector<float> scores;
     for(auto& fut : futures) {
         MatchResult r = fut.get();
-        float f = 2.0*static_cast<float>(r.wins)/ROUNDS
-                + 0.5f*static_cast<float>(r.ties)/ROUNDS
-                - static_cast<float>(r.losses)/ROUNDS;
+        //float f = 2.0*static_cast<float>(r.wins)/ROUNDS
+        //        + 0.5f*static_cast<float>(r.ties)/ROUNDS
+        //        - static_cast<float>(r.losses)/ROUNDS;
+        float f = 5.0f*static_cast<float>(r.wins)/ROUNDS
+                + 0.4f*static_cast<float>(r.ties)/ROUNDS
+                - 1.0f*static_cast<float>(r.losses)/ROUNDS;
+
         scores.push_back(f);
         sum += f;
     }
