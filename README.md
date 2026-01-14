@@ -79,6 +79,7 @@ The core idea of this project is to **evolve Core War warriors** using a **Genet
 ├── knowhow  
 ├── pmars-0.9.4          ← CoreWar simulator source (tailored to this project)  
 ├── README.md            ← this README  
+├── screenshots          ← Storing results needed by README  
 ├── src                  ← C++ source files of Evolution App  
 │   ├── CoreWarEvaluator.cpp  
 │   ├── main.cpp  
