@@ -10,6 +10,25 @@ More about:
 ***pMars***:   https://corewar.co.uk/pmars.htm  
 ***GALib***:   http://lancet.mit.edu/ga/  
 
+
+
+#### Compatibility:
+
+Developed and tested with:
+
+Static hostname: ThinkCentre-M92p  
+Icon name: computer-desktop  
+Chassis: desktop  
+Operating System: Linux Mint 21.1  
+Kernel: Linux 5.15.0-164-generic  
+Architecture: x86-64  
+Hardware Vendor: Lenovo  
+Hardware Model: ThinkCentre M92p  
+
+Should run with Linux without any issues. macOS is also supported, but eventually it needs smaller modifiations in:
+./CMakeLists.txt
+./pmars-0.9.4/src/Makefile
+
 ---
 
 ## 1. Main Idea:
@@ -96,6 +115,7 @@ The core idea of this project is to **evolve Core War warriors** using a **Genet
 ## 3. How to run:
 
 The project has a relatively complex structure and relies on two relatively old external libraries (pMars and galib). To allow working with modern C++ they had to be adpoted, therefore the modificated sources are provided here. This also means, that they have to be built directly from the modified source code.
+
 
 To avoid any confusion a Build&Run script was created which allowes the controll the whole project without destroying anything: **./build_and_run.sh**.
 
